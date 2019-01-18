@@ -32,6 +32,7 @@ class RoutingSearchParameters;
 #include "ortools/constraint_solver/routing_parameters.pb.h"
 #include "ortools/constraint_solver/routing_parameters.h"
 #include "ortools/constraint_solver/routing.h"
+#include <memory>
 %}
 
 %typemap(in) const std::vector<std::vector<operations_research::RoutingModel::NodeIndex> >&
@@ -88,6 +89,131 @@ class RoutingSearchParameters;
 %ignore operations_research::RoutingModel::StateDependentTransitCallback;
 %ignore operations_research::RoutingModel::MakeStateDependentTransit;
 %ignore operations_research::RoutingModel::AddDimensionDependentDimensionWithVehicleCapacity;
+
+// Bind TransitCallback to Java @FunctionalInterface
+// see: https://docs.oracle.com/javase/8/docs/api/java/util/function/LongBinaryOperator.html
+// see: https://docs.oracle.com/javase/8/docs/api/java/util/function/LongUnaryOperator.html
+// 1) ignore current methods
+%ignore operations_research::RoutingModel::RegisterTransitCallback(operations_research::TransitCallback2);
+%rename(registerTransitCallback) operations_research::RoutingModel::RegisterTransitCallback;
+
+%ignore operations_research::RoutingModel::RegisterUnaryTransitCallback(operations_research::TransitCallback1);
+%rename(registerUnaryTransitCallback) operations_research::RoutingModel::RegisterUnaryTransitCallback;
+// 2) Define C++ std::function transit callback types.
+%{
+namespace operations_research {
+ typedef std::function<int64(int64, int64)> BinaryTransitCallback;
+ typedef std::function<int64(int64)> UnaryTransitCallback;
+}  // namespace operations_research
+%}
+
+// 3) Add needed import to RoutingModel.java
+%typemap(javaimports) operations_research::RoutingModel %{
+import java.util.function.LongBinaryOperator;
+import java.util.function.LongUnaryOperator;
+import java.util.List;
+import java.util.ArrayList;
+%}
+
+// 4) Add needed import to mainJNI.java
+%pragma(java) jniclassimports=%{
+import java.util.function.LongBinaryOperator;
+import java.util.function.LongUnaryOperator;
+%}
+
+// 5) Modify RoutingModel to keep track of all callback
+// This will avoid the GC to reclaim them.
+%typemap(javacode) operations_research::RoutingModel %{
+  // Store list of callback to avoid the GC to reclaim them.
+  private List<LongBinaryOperator> binaryTransitCallbacks;
+  private List<LongUnaryOperator> unaryTransitCallbacks;
+
+  // Ensure that the GC does not collect any TransitCallback set from Java
+  // as the underlying C++ class only stores a shallow copy
+  private LongBinaryOperator storeBinaryTransitCallback(LongBinaryOperator c) {
+    if (binaryTransitCallbacks == null) binaryTransitCallbacks = new ArrayList<LongBinaryOperator>();
+    binaryTransitCallbacks.add(c);
+    return c;
+  }
+  private LongUnaryOperator storeUnaryTransitCallback(LongUnaryOperator c) {
+    if (unaryTransitCallbacks == null) unaryTransitCallbacks = new ArrayList<LongUnaryOperator>();
+    unaryTransitCallbacks.add(c);
+    return c;
+  }
+%}
+
+// 6) Map C++ callback to Java Type
+#define %VAR_ARGS(X...) X
+%define %DEFINE_CALLBACK(
+  TYPE,
+  JAVA_TYPE, JAVA_METHOD, JAVA_SIGN,
+  LAMBDA_PARAM, LAMBDA_CALL,
+  STORE)
+  %typemap(in) TYPE %{
+    jclass object_class = jenv->GetObjectClass($input);
+    if (nullptr == object_class) return $null;
+    jmethodID method_id = jenv->GetMethodID(
+      object_class, JAVA_METHOD, JAVA_SIGN);
+    assert(method_id != nullptr);
+    // $input will be deleted once this function return.
+    jweak object_weak = jenv->NewWeakGlobalRef($input);
+
+    /* Global JNI weak reference deleter */
+    struct WeakGlobalRefGuard {
+      JNIEnv *jenv_;
+      jweak jweak_;
+      // non-copyable
+      WeakGlobalRefGuard(const WeakGlobalRefGuard &) = delete;
+      WeakGlobalRefGuard &operator=(const WeakGlobalRefGuard &) = delete;
+      public:
+      WeakGlobalRefGuard(JNIEnv *jenv, jweak jweak): jenv_(jenv), jweak_(jweak) {}
+      ~WeakGlobalRefGuard() {
+        std::cout << "~WeakGlobalRefGuard: " << std::endl;
+        if (jweak_) {
+          std::cout << "delete global weak" << std::endl;
+          jenv_->DeleteWeakGlobalRef(jweak_);
+        }
+      }
+    };
+    auto guard = std::make_shared<WeakGlobalRefGuard>(jenv, object_weak);
+    //std::cerr << "$input: " << (jlong)$input << std::endl;
+    //std::cerr << "object_weak: " << (jlong)object_weak << std::endl;
+    //std::cerr << "Check call: " << jenv->CallLongMethod(object_weak, method_id, 1, 4) << std::endl;
+    $1 = [jenv, object_weak, method_id, guard](LAMBDA_PARAM) -> long {
+      //std::cerr << "Call: " << a << ", "<< b << std::endl;
+      //std::cerr << "$input: " << (jlong)$input << std::endl;
+      //std::cerr << "object_weak: " << (jlong)object_weak << std::endl;
+      return jenv->CallLongMethod(object_weak, method_id, LAMBDA_CALL);
+    };
+  %}
+  // These 3 typemaps tell SWIG what JNI and Java types to use.
+  %typemap(jni) TYPE "jobject" // Type use in the JNI C.
+  %typemap(jtype) TYPE "JAVA_TYPE" // Type use in the JNI.java.
+  %typemap(jstype) TYPE "JAVA_TYPE" // Type use in the Proxy class
+  // before passing the Callback to JNI java, we store a reference on it to keep it alive.
+  %typemap(javain) TYPE "STORE($javainput)"
+%enddef
+%DEFINE_CALLBACK(
+  operations_research::BinaryTransitCallback,
+  LongBinaryOperator, "applyAsLong", "(JJ)J",
+  %VAR_ARGS(long from, long to), %VAR_ARGS(from, to),
+  storeBinaryTransitCallback)
+%DEFINE_CALLBACK(
+  operations_research::UnaryTransitCallback,
+  LongUnaryOperator, "applyAsLong", "(J)J",
+  %VAR_ARGS(long from), %VAR_ARGS(from),
+  storeUnaryTransitCallback)
+
+// 7) Add methods to RoutingModel to support these callbacks.
+%extend operations_research::RoutingModel {
+ int newRegisterTransitCallback(operations_research::BinaryTransitCallback c) {
+   return $self->RegisterTransitCallback(c);
+ }
+ int newRegisterUnaryTransitCallback(operations_research::UnaryTransitCallback c) {
+   return $self->RegisterUnaryTransitCallback(c);
+ }
+}
+
 
 // RoutingModel methods.
 %rename (activeVar) operations_research::RoutingModel::ActiveVar;
@@ -179,8 +305,6 @@ class RoutingSearchParameters;
 %rename (readAssignment) operations_research::RoutingModel::ReadAssignment;
 %rename (readAssignmentFromRoutes) operations_research::RoutingModel::ReadAssignmentFromRoutes;
 %rename (registerPositiveTransitCallback) operations_research::RoutingModel::RegisterPositiveTransitCallback;
-%rename (registerTransitCallback) operations_research::RoutingModel::RegisterTransitCallback;
-%rename (registerUnaryTransitCallback) operations_research::RoutingModel::RegisterUnaryTransitCallback;
 %rename (restoreAssignment) operations_research::RoutingModel::RestoreAssignment;
 %rename (routesToAssignment) operations_research::RoutingModel::RoutesToAssignment;
 %rename (setAllowedVehiclesForIndex) operations_research::RoutingModel::SetAllowedVehiclesForIndex;

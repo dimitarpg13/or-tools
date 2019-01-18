@@ -23,6 +23,7 @@ import com.google.ortools.constraintsolver.RoutingModel;
 import com.google.ortools.constraintsolver.RoutingSearchParameters;
 import com.google.ortools.constraintsolver.main;
 import java.util.logging.Logger;
+import java.util.function.LongBinaryOperator;
 // [END import]
 
 /** Minimal Routing example to showcase calling the solver.*/
@@ -51,18 +52,37 @@ public class SimpleRoutingProgram {
     RoutingModel routing = new RoutingModel(manager);
     // [END routing_model]
 
+    // Create a distance callback.
+    // [START distance_callback]
+    int transitCallbackIndex;
+    if (false) {
+      transitCallbackIndex = routing.newRegisterTransitCallback(
+          (long fromIndex, long toIndex) -> {
+            // Convert from routing variable Index to user NodeIndex.
+            int fromNode = manager.indexToNode(fromIndex);
+            int toNode = manager.indexToNode(toIndex);
+            return abs(toNode - fromNode);
+          }
+          );
+    } else {
+      transitCallbackIndex = routing.registerTransitCallback(
+          new LongLongToLong() {
+            @Override
+            public long run(long fromIndex, long toIndex) {
+              // Convert from routing variable Index to user NodeIndex.
+              int fromNode = manager.indexToNode(fromIndex);
+              int toNode = manager.indexToNode(toIndex);
+              return abs(toNode - fromNode);
+            }}
+          );
+    }
+    System.gc();
+    //routing = null;
+    //System.gc(); // we can see the deleter call
+    // [END distance_callback]
+
     // Define cost of each arc.
     // [START arc_cost]
-    final LongLongToLong distanceCallback = new LongLongToLong() {
-      @Override
-      public long run(long fromIndex, long toIndex) {
-        // Convert from routing variable Index to user NodeIndex.
-        int fromNode = manager.indexToNode(fromIndex);
-        int toNode = manager.indexToNode(toIndex);
-        return abs(toNode - fromNode);
-      }
-    };
-    final int transitCallbackIndex = routing.registerTransitCallback(distanceCallback);
     routing.setArcCostEvaluatorOfAllVehicles(transitCallbackIndex);
     // [END arc_cost]
 
