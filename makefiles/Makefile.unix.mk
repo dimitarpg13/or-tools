@@ -113,7 +113,7 @@ SWIG_INC = \
  $(GLPK_SWIG) $(SCIP_SWIG) $(GUROBI_SWIG) $(CPLEX_SWIG)
 
 # Compilation flags
-DEBUG = -O4 -DNDEBUG
+DEBUG = -O0 -g
 JNIDEBUG = -O1 -DNDEBUG
 
 ifeq ($(PLATFORM),LINUX)
