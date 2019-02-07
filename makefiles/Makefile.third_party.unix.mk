@@ -94,7 +94,7 @@ endif
 ifndef UNIX_SCIP_DIR
 	$(info SCIP: not found)
 else
-  ifeq ($(wildcard $(UNIX_SCIP_DIR)/include/scip/scip.h),)
+  ifeq ($(wildcard $(UNIX_SCIP_DIR)/src/scip/scip.h),)
 	$(error Third party SCIP files was not found! please check the path given to UNIX_SCIP_DIR)
   else
 	$(info SCIP: found)
