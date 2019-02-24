@@ -2229,8 +2229,8 @@ bool PWLSolver::ExtractState() {
        !ValidateState()        ||
        !ExtractVariables()     ||
        !ExtractObjective()     ||
-       !ExtractConstraints()   || 
-       !ExtractSOSConstraint())         
+       !ExtractConstraints()  /* || 
+       !ExtractSOSConstraint()*/)         
    {
        Clear();
        return false;
@@ -2362,7 +2362,7 @@ bool PWLSolver::ExtractConstraints() {
 
    // add one last constraint to make sure that at least one of the integer 
    // (in fact boolean) variables lambda_i is turned on.
-   curConstr = mp_solver_->MakeRowConstraint(1, infinity());
+   curConstr = mp_solver_->MakeRowConstraint(1, 1);
    for (int j=0; j < k; ++j) {
        curVar = variables_[j];
        curConstr->SetCoefficient(curVar, 1.0);
