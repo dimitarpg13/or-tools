@@ -309,6 +309,8 @@ from ortools.linear_solver.linear_solver_natural_api import VariableExpr
 %unignore operations_research::PWLSolver::VerifySolution;
 %unignore operations_research::PWLSolver::infinity;
 %unignore operations_research::PWLSolver::set_time_limit;  // No unit test
+%unignore operations_research::PWLSolver::wall_time;
+%unignore operations_research::PWLSolver::nodes;
 %unignore operations_research::PWLSolver::SetXValues;
 %unignore operations_research::PWLSolver::SetYValues;
 %unignore operations_research::PWLSolver::SetParameter;
