@@ -270,6 +270,79 @@ from ortools.linear_solver.linear_solver_natural_api import VariableExpr
 %unignore operations_research::MPSolver::BASIC;
 
 #ifdef MIP_SOLVER_WITH_SOS_CONSTRAINTS 
+%define DOCSTRING
+ " 
+this class provides a solver optimizing an objective function containing 
+a piecewise linear function as well as continuous variables.
+
+Problem definition:
+We have a piecewise linear (discrete) function given in tabular form with the relation
+
+(1)     y_i = f(x_i), i = 1..k
+
+Here x_i are m-dimensional real vectors i.e. x_i b.t. R(m), y_i are real scalar values i.e. y_i b.t. R
+
+We would like to find the maximum of the following expression
+
+(2)     f(x) + c^{T} * x + b^{T} * z
+
+Here the subscript T denotes a matrix transpose operation. All quantities with small letters 
+denote column vectors and all quantities with capital letters will denote matrices 
+unless explicitly stated otherwise. The operator '*' denotes matrix multiplication.
+
+The objective function (2) is subject to the following constraints:
+
+(3)     A * x + B * z <= d
+(4)     z >= 0
+
+Here z b.t. R(l) is a l-dimensional vector of continuous variables while x_i is a vector of given values.
+The number of individual constraints in (3) is p so the matrix A b.t. R(p,k), the matrix B b.t. R(p,l), 
+and the vector d b.t. R(p).
+
+After change of variables the problem given with (2)-(4) is transformed into
+
+(5)    sum_{i=1}^{k} lambda_i * y_i + c^{T}*( sum_{i=1}^k lambda_i * x_i ) + b^{T} * z
+
+subject to the system of constraints:
+
+(6)    A * (sum_{i=1}^k lambda_i * x_i) + B * z <= d
+(7)    sum_{i=1}^{k} lambda_i = 1
+(8)    z >= 0
+
+Here lambda_i, i = 1..k are the new set of binary variables where at most one of them can be 1. The goal is
+to find such set of binary variables given with the vector lambda b.t. R(k) and continuous variables 
+z b.t. R(l) such that the maximum of (5) is attained subject to constraints (6)-(8).
+
+The dimensionality of the various parameters and variables in the PWL Solver is summarized below:
+
+x b.t. R(m), y b.t. R, c b.t. R(l), z b.t. R(l)
+A b.t. R(p,m), B b.t. R(p,l), d b.t. R(p)
+
+It is useful to rewrite (5)-(8) in a more concise form where (5) becomes
+
+(9)    maximize a * lambda + b * z
+
+Here we have made the substiution 
+
+(10)   a = y + c * x, a b.t. R
+
+In (6) we make the substitution 
+
+(11)   C = A * X, C b.t. R(p,k)
+
+where X is a matrix with m rows and k columns composed of all x_i, i=1..k each represented as a column in X.
+
+Then (6) becomes
+
+(12)   C * lambda + B * z <= d
+
+(13)   sum_{i=1}^{k} = 1
+
+(14)   z >= 0
+ "
+%enddef
+
+%feature("docstring", DOCSTRING) operations_research::PWLSolver;
 %rename (PwlSolver) operations_research::PWLSolver;
 %rename (PwlSolver) operations_research::PWLSolver::PWLSolver;
 %rename (SosConstraint) operations_research::SOSConstraint;
@@ -309,6 +382,8 @@ from ortools.linear_solver.linear_solver_natural_api import VariableExpr
 %unignore operations_research::PWLSolver::VerifySolution;
 %unignore operations_research::PWLSolver::infinity;
 %unignore operations_research::PWLSolver::set_time_limit;  // No unit test
+%unignore operations_research::PWLSolver::wall_time;
+%unignore operations_research::PWLSolver::nodes;
 %unignore operations_research::PWLSolver::SetXValues;
 %unignore operations_research::PWLSolver::SetYValues;
 %unignore operations_research::PWLSolver::SetParameter;
