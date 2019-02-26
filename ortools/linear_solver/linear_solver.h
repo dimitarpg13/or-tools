@@ -803,8 +803,74 @@ class MPObjective {
 };
 
 #ifdef MIP_SOLVER_WITH_SOS_CONSTRAINTS
-// this class provides a solver for a generalized piece-wise linear approximation of a discrete
-// linear function with mixed constrains (SOS-1 and general inequality constraints)
+// this class provides a solver optimizing an objective function containing 
+// a piecewise linear function as well as continuous variables.
+//
+// Problem definition:
+// We have a piecewise linear (discrete) function given in tabular form with the relation
+//
+// (1)     y_i = f(x_i), i = 1..k
+//
+// Here x_i are m-dimensional real vectors i.e. x_i b.t. R(m), y_i are real scalar values i.e. y_i b.t. R
+//
+// We would like to find the maximum of the following expression
+//
+// (2)     f(x) + c^{T} * x + b^{T} * z
+//
+// Here the subscript T denotes a matrix transpose operation. All quantities with small letters 
+// denote column vectors and all quantities with capital letters will denote matrices 
+// unless explicitly stated otherwise. The operator '*' denotes matrix multiplication.
+// 
+// The objective function (2) is subject to the following constraints:
+//
+// (3)     A * x + B * z <= d
+// (4)     z >= 0
+//
+// Here z b.t. R(l) is a l-dimensional vector of continuous variables while x_i is a vector of given values.
+// The number of individual constraints in (3) is p so the matrix A b.t. R(p,k), the matrix B b.t. R(p,l), 
+// and the vector d b.t. R(p).
+// 
+// After change of variables the problem given with (2)-(4) is transformed into
+//
+// (5)    sum_{i=1}^{k} lambda_i * y_i + c^{T}*( sum_{i=1}^k lambda_i * x_i ) + b^{T} * z
+//
+// subject to the system of constraints:
+//
+// (6)    A * (sum_{i=1}^k lambda_i * x_i) + B * z <= d
+// (7)    sum_{i=1}^{k} lambda_i = 1
+// (8)    z >= 0
+//
+// Here lambda_i, i = 1..k are the new set of binary variables where at most one of them can be 1. The goal is
+// to find such set of binary variables given with the vector lambda b.t. R(k) and continuous variables 
+// z b.t. R(l) such that the maximum of (5) is attained subject to constraints (6)-(8).
+//
+// The dimensionality of the various parameters and variables in the PWL Solver is summarized below:
+//
+// x b.t. R(m), y b.t. R, c b.t. R(l), z b.t. R(l)
+// A b.t. R(p,m), B b.t. R(p,l), d b.t. R(p)
+//
+// It is useful to rewrite (5)-(8) in a more concise form where (5) becomes
+//
+// (9)    maximize a * lambda + b * z
+//
+// Here we have made the substiution 
+//
+// (10)   a = y + c * x, a b.t. R
+//
+// In (6) we make the substitution 
+//
+// (11)   C = A * X, C b.t. R(p,k)
+//
+// where X is a matrix with m rows and k columns composed of all x_i, i=1..k each represented as a column in X.
+//
+// Then (6) becomes
+//
+// (12)   C * lambda + B * z <= d
+//
+// (13)   sum_{i=1}^{k} = 1
+//
+// (14)   z >= 0
+//
 class PWLSolver {
  public:
   // TO DO (dimitarpg13):  if we are going to support invocation through protobuf (PWLSolver::SolveWithProto)
@@ -860,6 +926,8 @@ class PWLSolver {
                                      PWLSolver::OptimizationSuite* pSuite);
 
   static bool GetProblemType(OptimizationSuite opt_suite, MPSolver::OptimizationProblemType* pType);
+
+  static bool OptSuiteToString(const OptimizationSuite optimization_suite, std::string & sOptSuite);
 
   const std::string& Name() const {
       return name_;  // Set at construction.

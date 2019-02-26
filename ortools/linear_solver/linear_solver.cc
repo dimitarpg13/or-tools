@@ -2521,6 +2521,46 @@ bool PWLSolver::ParseOptimizationSuite(absl::string_view suite,
   return true;
 }
 
+bool PWLSolver::OptSuiteToString(const OptimizationSuite optimization_suite, std::string & sOptSuite) {
+  bool res;
+  switch (optimization_suite) {
+#ifdef USE_GUROBI
+    case GUROBI:
+      sOptSuite = "GUROBI";
+      res = true;
+      break;
+#endif
+#ifdef USE_SCIP
+    case SCIP:
+      sOptSuite = "SCIP";
+      res = true;
+      break;
+#endif
+#ifdef USE_GLPK
+    case GLPK:
+      sOptSuite = "GLPK";
+      res = true;
+      break;
+#endif
+#ifdef USE_CBC
+    case CBC:
+      sOptSuite = "CBC";
+      res = true;
+      break;
+#endif
+#ifdef USE_CPLEX
+    case CPLEX:
+      sOptSuite = "CPLEX";
+      res = true;
+      break;
+#endif
+    default:
+      sOptSuite = "Unknown";
+      res = false;
+      break;
+  }
+  return res;
+}
 #endif // MIP_SOLVER_WITH_SOS_CONSTRAINTS
 
 }  // namespace operations_research
