@@ -191,6 +191,10 @@ Makefile.local: makefiles/Makefile.third_party.$(SYSTEM).mk
 	@echo >> Makefile.local
 	@echo "# note: You don't need to run \"make third_party\" if you only use external dependencies" >> Makefile.local
 	@echo "# i.e. you define all UNIX_GFLAGS_DIR, UNIX_GLOG_DIR, UNIX_PROTOBUF_DIR and UNIX_CBC_DIR" >> Makefile.local
+    @echo "UNIX_GUROBI_DIR=/opt/gurobi800" >> Makefile.local
+    @echo "GUROBI_LIB_VERSION=80" >> Makefile.local
+    @echo "UNIX_CPLEX_DIR=/opt/CPLEX_Studio_Community128" >> Makefile.local
+    @echo "UNIX_SCIP_DIR=/opt/scipoptsuite-5.0.1/scip" >> Makefile.local
 
 ##############
 ##  GFLAGS  ##
