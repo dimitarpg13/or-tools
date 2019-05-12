@@ -5,6 +5,7 @@ help_third_party:
 	@echo
 
 # Checks if the user has overwritten default libraries and binaries.
+UNIX_FFTW_DIR ?= $(OR_TOOLS_TOP)/dependencies/install
 UNIX_GTEST_DIR ?= $(OR_TOOLS_TOP)/dependencies/install
 UNIX_GFLAGS_DIR ?= $(OR_TOOLS_TOP)/dependencies/install
 UNIX_GLOG_DIR ?= $(OR_TOOLS_TOP)/dependencies/install
@@ -17,8 +18,14 @@ UNIX_OSI_DIR ?= $(UNIX_CBC_DIR)
 UNIX_COINUTILS_DIR ?= $(UNIX_CBC_DIR)
 UNIX_SWIG_BINARY ?= swig
 PROTOC_BINARY := $(shell $(WHICH) ${UNIX_PROTOC_BINARY})
+UNIX_OCAML_PACKAGE ?= ocaml
+UNIX_OCAMLBUILD_PACKAGE ?= ocamlbuild
+UNIX_INDENT_PACKAGE ?= indent
+UNIX_FIG2DEV_PACKAGE ?= fig2dev
+UNIX_TEXINFO_PACKAGE ?= texinfo
 
 # Tags of dependencies to checkout.
+FFTW_TAG = 3.3.8
 GTEST_TAG = 1.8.1
 GFLAGS_TAG = 2.2.1
 GLOG_TAG = 0.3.5
@@ -114,6 +121,7 @@ build_third_party: \
  Makefile.local \
  archives_directory \
  install_deps_directories \
+ build_fftw \
  build_gtest \
  build_gflags \
  build_glog \
@@ -204,6 +212,38 @@ Makefile.local: makefiles/Makefile.third_party.$(SYSTEM).mk
 	@echo "UNIX_CPLEX_DIR=/opt/CPLEX_Studio_Community128" >> Makefile.local
 	@echo "UNIX_SCIP_DIR=/opt/scipoptsuite-5.0.1/scip" >> Makefile.local
 	@echo "# i.e. you define all UNIX_GTEST_DIR, UNIX_GFLAGS_DIR, UNIX_GLOG_DIR, UNIX_PROTOBUF_DIR and UNIX_CBC_DIR" >> Makefile.local
+
+##############
+##   FFTW   ## 
+##############
+.PHONY: build_fftw
+build_fftw: dependencies/install/lib/libfftw3.$L
+
+dependencies/install/lib/libfftw3.$L: dependencies/sources/fftw-$(FFTW_TAG) fftw_packages | dependencies/install
+	cd dependencies/sources/fftw-$(FFTW_TAG) && \
+  ./bootstrap.sh --prefix=$(shell pwd)/dependencies/install && \
+  $(MAKE) install
+
+dependencies/sources/fftw-$(FFTW_TAG) : | dependencies/sources
+	-$(DELREC) dependencies/sources/fftw-$(FFTW_TAG)
+	git clone --quiet -b fftw-$(FFTW_TAG) --single-branch https://github.com/FFTW/fftw3.git dependencies/sources/fftw-$(FFTW_TAG)
+
+OCAML_INSTALLED_VERSION = $(shell $(APTLISTINSTALLED) $(UNIX_OCAML_PACKAGE) $(STDERR_OFF) | $(GREP) $(UNIX_OCAML_PACKAGE) | $(AWK) '{ print $2 }')
+
+OCAMLBUILD_INSTALLED_VERSION = $(shell $(APTLISTINSTALLED) $(UNIX_OCAMLBUILD_PACKAGE) $(STDERR_OFF) | $(GREP) $(UNIX_OCAMLBUILD_PACKAGE) | $(AWK) '{ print $2 }')
+
+INDENT_INSTALLED_VERSION = $(shell $(APTLISTINSTALLED) $(UNIX_INDENT_PACKAGE) $(STDERR_OFF) | $(GREP) $(UNIX_INDENT_PACKAGE) | $(AWK) '{ print $2 }')
+
+FIG2DEV_INSTALLED_VERSION = $(shell $(APTLISTINSTALLED) $(UNIX_FIG2DEV_PACKAGE) $(STDERR_OFF) | $(GREP) $(UNIX_FIG2DEV_PACKAGE) | $(AWK) '{ print $2 }')
+
+TEXINFO_INSTALLED_VERSION = $(shell $(APTLISTINSTALLED) $(UNIX_TEXINFO_PACKAGE) $(STDERR_OFF) | $(GREP) $(UNIX_TEXINFO_PACKAGE) | $(AWK) '{ print $2 }')
+
+fftw_packages :
+	if [ -z "$(OCAML_INSTALLED_VERSION)" ]; then $(INSTALL) $(UNIX_OCAML_PACKAGE); fi
+	if [ -z "$(OCAMLBUILD_INSTALLED_VERSION)" ]; then $(INSTALL) $(UNIX_OCAMLBUILD_PACKAGE); fi
+	if [ -z "$(INDENT_INSTALLED_VERSION)" ]; then $(INSTALL) $(UNIX_INDENT_PACKAGE); fi
+	if [ -z "$(FIG2DEV_INSTALLED_VERSION)" ]; then $(INSTALL) $(UNIX_FIG2DEV_PACKAGE); fi
+	if [ -z "$(TEXINFO_INSTALLED_VERSION)" ]; then $(INSTALL) $(UNIX_TEXINFO_PACKAGE); fi
 
 ##############
 ##  GTEST  ##
