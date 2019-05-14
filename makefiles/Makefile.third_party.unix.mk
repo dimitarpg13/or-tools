@@ -222,7 +222,7 @@ build_fftw: dependencies/install/lib/libfftw3.$L
 dependencies/install/lib/libfftw3.$L: dependencies/sources/fftw-$(FFTW_TAG) fftw_packages | dependencies/install
 	cd dependencies/sources/fftw-$(FFTW_TAG) && \
   ./bootstrap.sh --prefix=$(shell pwd)/dependencies/install && \
-  $(MAKE) install
+  $(MAKE) CFLAGS="-fPIC" install
 
 dependencies/sources/fftw-$(FFTW_TAG) : | dependencies/sources
 	-$(DELREC) dependencies/sources/fftw-$(FFTW_TAG)
@@ -251,8 +251,8 @@ STATIC_FFTW_LNK = $(UNIX_FFTW_DIR)/lib/libfftw3.a
 DYNAMIC_FFTW_LNK = -L$(UNIX_FFTW_DIR)/lib -lfftw3
 
 FFTW_LNK = $(DYNAMIC_FFTW_LNK)
-#DEPENDENCIES_LNK += $(FFTW_LNK)
-#OR_TOOLS_LNK += $(FFTW_LNK)
+DEPENDENCIES_LNK += $(FFTW_LNK)
+OR_TOOLS_LNK += $(FFTW_LNK)
 
 ##############
 ##  GTEST  ##

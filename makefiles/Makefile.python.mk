@@ -252,6 +252,7 @@ $(GEN_DIR)/ortools/constraint_solver/pywrapcp.py: \
  $(GEN_DIR)/ortools/constraint_solver/assignment.pb.h \
  $(GEN_DIR)/ortools/constraint_solver/model.pb.h \
  $(GEN_DIR)/ortools/constraint_solver/search_limit.pb.h \
+ $(FORECAST_LIB_OBJS) \
  $(CP_LIB_OBJS) \
  $(PROTOBUF_PYTHON_DESC) \
  | $(GEN_DIR)/ortools/constraint_solver

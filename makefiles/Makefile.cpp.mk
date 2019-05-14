@@ -119,6 +119,9 @@ $(OBJ_DIR)/graph: | $(OBJ_DIR)
 $(OBJ_DIR)/linear_solver: | $(OBJ_DIR)
 	-$(MKDIR_P) $(OBJ_DIR)$Slinear_solver
 
+$(OBJ_DIR)/forecaster: | $(OBJ_DIR)
+	-$(MKDIR_P) $(OBJ_DIR)$Sforecaster
+
 $(OBJ_DIR)/lp_data: | $(OBJ_DIR)
 	-$(MKDIR_P) $(OBJ_DIR)$Slp_data
 
@@ -153,6 +156,7 @@ $(OR_TOOLS_LIBS): \
  $(GRAPH_LIB_OBJS) \
  $(ALGORITHMS_LIB_OBJS) \
  $(SAT_LIB_OBJS) \
+ $(FORECAST_LIB_OBJS) \
  $(CP_LIB_OBJS) | $(LIB_DIR)
 	$(LINK_CMD) \
  $(LD_OUT)$(LIB_DIR)$S$(LIB_PREFIX)ortools.$L \
@@ -167,6 +171,7 @@ $(OR_TOOLS_LIBS): \
  $(SAT_LIB_OBJS) \
  $(BOP_LIB_OBJS) \
  $(LP_LIB_OBJS) \
+ $(FORECAST_LIB_OBJS) \
  $(CP_LIB_OBJS) \
  $(DEPENDENCIES_LNK) \
  $(LDFLAGS)
@@ -295,7 +300,10 @@ endif
 
 #GTEST_TESTS_LIBS = $(LIB_DIR)/$(LIB_PREFIX)gtest$A
 GTEST_TESTS_DEPS = \
-	$(SRC_DIR)/ortools/linear_solver/simplemath.h
+	$(SRC_DIR)/ortools/linear_solver/simplemath.h \
+	ortools/forecaster/fourier_forecaster.h \
+	ortools/forecaster/forecaster.h
+
 GTEST_TESTS_LNK = $(PRE_LIB)gtest$(POST_LIB) $(OR_TOOLS_LNK)
 ifeq ($(PLATFORM),MACOSX)
 GTEST_TESTS_LDFLAGS = -install_name @rpath/$(LIB_PREFIX)gtest.$L #
@@ -310,13 +318,33 @@ $(OBJ_DIR)/my_first_test.$O: $(GTEST_TESTS_PATH)$Smy_first_test.cc $(GTEST_TESTS
 $(BIN_DIR)/my_first_test$E: $(OBJ_DIR)/my_first_test.$O | $(BIN_DIR)
 	$(CCC) $(CLFAGS) $(OBJ_DIR)$Smy_first_test.$O $(GTEST_LNK) $(OR_TOOLS_LNK) $(OR_TOOLS_LDFLAGS) $(EXE_OUT)$(BIN_DIR)$Smy_first_test$E
 
+
+FOURIER_FORECASTER_CC_TESTS = \
+  fourier_dft_test \
+  fourier_forecaster_test
+
+$(OBJ_DIR)/fourier_dft_test.$O: $(GTEST_TESTS_PATH)$Sfourier_dft_test.cc $(GTEST_TESTS_DEP) | $(OBJ_DIR)
+	$(CCC) $(CFLAGS) -I$(GTEST_PATH) -I$(FFTW_PATH) -c $(GTEST_TESTS_PATH)$Sfourier_dft_test.cc $(OBJ_OUT)$(OBJ_DIR)$Sfourier_dft_test.$O
+$(BIN_DIR)/fourier_dft_test$E: $(OBJ_DIR)/fourier_dft_test.$O | $(BIN_DIR)
+	$(CCC) $(CFLAGS) $(OBJ_DIR)$Sfourier_dft_test.$O $(GTEST_LNK) $(FFTW_LNK) $(OR_TOOLS_LNK) $(OR_TOOLS_LDFLAGS) $(EXE_OUT)$(BIN_DIR)$Sfourier_dft_test$E
+
+$(OBJ_DIR)/fourier_forecaster_test.$O: $(GTEST_TESTS_PATH)$Sfourier_forecaster_test.cc $(GTEST_TESTS_DEP) | $(OBJ_DIR)
+	$(CCC) $(CFLAGS) -I$(GTEST_PATH) -I$(FFTW_PATH) -c $(GTEST_TESTS_PATH)$Sfourier_forecaster_test.cc $(OBJ_OUT)$(OBJ_DIR)$Sfourier_forecaster_test.$O
+
+$(BIN_DIR)/fourier_forecaster_test$E: $(OBJ_DIR)/fourier_forecaster_test.$O | $(BIN_DIR)
+	$(CCC) $(CFLAGS) $(OBJ_DIR)$Sfourier_forecaster_test.$O $(GTEST_LNK) $(FFTW_LNK) $(OR_TOOLS_LNK) $(OR_TOOLS_LDFLAGS) $(EXE_OUT)$(BIN_DIR)$Sfourier_forecaster_test$E
+
 .PHONY: build_test # Builds C++ gtests
 build_test: \
-$(addsuffix $E, $(addprefix $(BIN_DIR)/, $(LINEAR_SOLVER_CC_TESTS)))
+$(addsuffix $E, $(addprefix $(BIN_DIR)/, $(LINEAR_SOLVER_CC_TESTS))) \
+$(addsuffix $E, $(addprefix $(BIN_DIR)/, $(FOURIER_FORECASTER_CC_TESTS))) 
+
 
 .PHONY: run_test # Runs C++ gtests
 run_test: 
 	DYLD_LIBRARY_PATH=$(UNIX_GTEST_DIR)/lib bin/my_first_test
+	DYLD_LIBRARY_PATH=$(UNIX_GTEST_DIR)/lib bin/fourier_dft_test 
+	DYLD_LIBRARY_PATH=$(UNIX_GTEST_DIR)/lib bin/fourier_forecaster_test 
 
 ##################################
 ##  CPP Tests/Examples/Samples  ##
