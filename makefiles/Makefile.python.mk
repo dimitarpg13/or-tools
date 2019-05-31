@@ -34,6 +34,7 @@ PYTHON3 := true
 SWIG_PYTHON3_FLAG := -py3 -DPY3
 PYTHON3_CFLAGS := -DPY3
 endif
+PYTHON_DEBUG := -DNDEBUG
 endif
 
 # All libraries and dependecies
@@ -314,10 +315,7 @@ $(GEN_DIR)/ortools/linear_solver/pywraplp.py: \
  $(GEN_DIR)/ortools/linear_solver/linear_solver_pb2.py \
  $(PROTOBUF_PYTHON_DESC) \
  | $(GEN_DIR)/ortools/linear_solver
-	$(SWIG_BINARY) $(SWIG_INC) -I$(INC_DIR) -c++ -python $(SWIG_PYTHON3_FLAG) \
- -o $(GEN_PATH)$Sortools$Slinear_solver$Slinear_solver_python_wrap.cc \
- -module pywraplp \
- $(SRC_DIR)/ortools/linear_solver$Spython$Slinear_solver.i
+	$(SWIG_BINARY) $(SWIG_INC) -I$(INC_DIR) $(PYTHON_DEBUG) -c++ -python $(SWIG_PYTHON3_FLAG) -o $(GEN_PATH)$Sortools$Slinear_solver$Slinear_solver_python_wrap.cc -module pywraplp $(SRC_DIR)/ortools/linear_solver$Spython$Slinear_solver.i
 
 $(GEN_DIR)/ortools/linear_solver/linear_solver_python_wrap.cc: \
  $(GEN_DIR)/ortools/linear_solver/pywraplp.py
@@ -847,6 +845,20 @@ $(PYPI_ARCHIVE_TEMP_DIR)/ortools/LICENSE-2.0.txt: LICENSE-2.0.txt | $(PYPI_ARCHI
 	$(COPY) LICENSE-2.0.txt $(PYPI_ARCHIVE_TEMP_DIR)$Sortools
 
 PYTHON_SETUP_DEPS=
+ifeq ($(UNIX_GTEST_DIR),$(OR_TOOLS_TOP)/dependencies/install)	
+  ifeq ($(PLATFORM),MACOSX)
+    PYTHON_SETUP_DEPS += , 'libgtest.$L'
+    PYTHON_SETUP_DEPS += , 'libgmock.$L'
+    PYTHON_SETUP_DEPS += , 'libgtest_main.$L'
+    PYTHON_SETUP_DEPS += , 'libgmock_main.$L'
+  endif
+  ifeq ($(PLATFORM),LINUX)
+    PYTHON_SETUP_DEPS += , 'libgtest.$L'
+    PYTHON_SETUP_DEPS += , 'libgmock.$L'
+    PYTHON_SETUP_DEPS += , 'libgtest_main.$L'
+    PYTHON_SETUP_DEPS += , 'libgmock_main.$L'
+  endif
+endif
 ifeq ($(UNIX_GFLAGS_DIR),$(OR_TOOLS_TOP)/dependencies/install)
   ifeq ($(PLATFORM),MACOSX)
     PYTHON_SETUP_DEPS += , 'libgflags.2.2.$L'
@@ -987,6 +999,10 @@ ifneq ($(PYTHON_EXECUTABLE),)
 pypi_archive: $(OR_TOOLS_LIBS) python $(MISSING_PYPI_FILES)
 ifneq ($(SYSTEM),win)
 	cp $(OR_TOOLS_LIBS) $(PYPI_ARCHIVE_TEMP_DIR)/ortools/ortools/.libs
+endif
+ifeq ($(UNIX_GTEST_DIR),$(OR_TOOLS_TOP)/dependencies/install)
+	$(COPYREC) dependencies$Sinstall$Slib$Slibgtest* $(PYPI_ARCHIVE_TEMP_DIR)$Sortools$Sortools$S.libs
+	$(COPYREC) dependencies$Sinstall$Slib$Slibgmock* $(PYPI_ARCHIVE_TEMP_DIR)$Sortools$Sortools$S.libs
 endif
 ifeq ($(UNIX_GFLAGS_DIR),$(OR_TOOLS_TOP)/dependencies/install)
 	$(COPYREC) dependencies$Sinstall$Slib$Slibgflags* $(PYPI_ARCHIVE_TEMP_DIR)$Sortools$Sortools$S.libs

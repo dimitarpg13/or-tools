@@ -15,6 +15,9 @@ LIB_DIR = $(OR_ROOT)lib
 BIN_DIR = $(OR_ROOT)bin
 TEST_DIR  = $(OR_ROOT)examples/tests
 TEST_PATH = $(subst /,$S,$(TEST_DIR))
+GTEST_TESTS_DIR = $(OR_ROOT)tests
+GTEST_TESTS_PATH = $(subst /,$S,$(GTEST_TESTS_DIR))
+GTEST_PATH = $(subst /,$S,$(GTEST_INC))
 CC_EX_DIR  = $(OR_ROOT)examples/cpp
 CC_EX_PATH = $(subst /,$S,$(CC_EX_DIR))
 FZ_EX_DIR  = $(OR_ROOT)examples/flatzinc
@@ -95,7 +98,7 @@ ifdef UNIX_GLPK_DIR
 endif
 # This is needed to find scip include files.
 ifdef UNIX_SCIP_DIR
-  SCIP_INC = -I$(UNIX_SCIP_DIR)/include -DUSE_SCIP
+  SCIP_INC = -I$(UNIX_SCIP_DIR)/src -DUSE_SCIP
   SCIP_SWIG = $(SCIP_INC)
 endif
 ifdef UNIX_GUROBI_DIR
@@ -113,7 +116,8 @@ SWIG_INC = \
  $(GLPK_SWIG) $(SCIP_SWIG) $(GUROBI_SWIG) $(CPLEX_SWIG)
 
 # Compilation flags
-DEBUG = -O4 -DNDEBUG
+DEBUG = -O0 -g
+#DEBUG = -O4 -DNDEBUG
 JNIDEBUG = -O1 -DNDEBUG
 
 ifeq ($(PLATFORM),LINUX)
@@ -128,11 +132,12 @@ ifeq ($(PLATFORM),LINUX)
   endif
   ifdef UNIX_SCIP_DIR
     SCIP_ARCH = linux.x86_64.gnu.opt
-    SCIP_LNK = \
- $(UNIX_SCIP_DIR)/lib/libscip.a \
- $(UNIX_SCIP_DIR)/lib/libscipopt.a \
- $(UNIX_SCIP_DIR)/lib/libsoplex.a \
- $(UNIX_SCIP_DIR)/lib/libsoplex.$(SCIP_ARCH).a
+ #   SCIP_LNK = \
+ # $(UNIX_SCIP_DIR)/lib/static/libscip.a \
+ # $(UNIX_SCIP_DIR)/lib/libscipopt.a \
+ # $(UNIX_SCIP_DIR)/lib/libsoplex.a \
+ # $(UNIX_SCIP_DIR)/lib/libsoplex.$(SCIP_ARCH).a
+    SCIP_LNK = --force-link $(UNIX_SCIP_DIR)/lib/static/libscip.$(SCIP_ARCH).a $(UNIX_SCIP_DIR)/lib/static/libnlpi.cppad.$(SCIP_ARCH).a --force-link $(UNIX_SCIP_DIR)/lib/static/liblpispx2.$(SCIP_ARCH).a --force-link $(UNIX_SCIP_DIR)/lib/static/libsoplex.$(SCIP_ARCH).a --force-link $(UNIX_SCIP_DIR)/lib/static/libtpitny.$(SCIP_ARCH).a
   endif
   ifdef UNIX_GUROBI_DIR
     ifeq ($(PTRLENGTH),64)
@@ -198,12 +203,14 @@ ifeq ($(PLATFORM),MACOSX)
     GLPK_LNK = $(UNIX_GLPK_DIR)/lib/libglpk.a
   endif
   ifdef UNIX_SCIP_DIR
+#    SCIP_ARCH = darwin.x86_64.gnu.opt
+#    SCIP_LNK = \
+# -force_load $(UNIX_SCIP_DIR)/lib/libscip.a \
+# $(UNIX_SCIP_DIR)/lib/libscipopt.a \
+# $(UNIX_SCIP_DIR)/lib/libsoplex.a \
+# $(UNIX_SCIP_DIR)/lib/libsoplex.$(SCIP_ARCH).a
     SCIP_ARCH = darwin.x86_64.gnu.opt
-    SCIP_LNK = \
- -force_load $(UNIX_SCIP_DIR)/lib/libscip.a \
- $(UNIX_SCIP_DIR)/lib/libscipopt.a \
- $(UNIX_SCIP_DIR)/lib/libsoplex.a \
- $(UNIX_SCIP_DIR)/lib/libsoplex.$(SCIP_ARCH).a
+    SCIP_LNK = -force_load $(UNIX_SCIP_DIR)/lib/static/libscip.$(SCIP_ARCH).a $(UNIX_SCIP_DIR)/lib/static/libnlpi.cppad.$(SCIP_ARCH).a -force_load $(UNIX_SCIP_DIR)/lib/static/liblpispx2.$(SCIP_ARCH).a -force_load $(UNIX_SCIP_DIR)/lib/static/libsoplex.$(SCIP_ARCH).a -force_load $(UNIX_SCIP_DIR)/lib/static/libtpitny.$(SCIP_ARCH).a
   endif
   ifdef UNIX_GUROBI_DIR
     GUROBI_LNK = \
