@@ -346,13 +346,9 @@ bool FourierForecasterLinear::fit(const SparseDataContainer<DATA_REAL_VAL_TYPE>&
    }
    LOG(INFO) << "sumOfAbsYRe = " << sumOfAbsYRe << ", " << "sumOfAbsYIm = " << sumOfAbsYIm;
 
-
-   double errAbs=0.0, errPerc=0.0, sumOfAbs=0.0;
-   for (int i = 0; i < S; ++i) {
-      errAbs += fabs((*result_)[i] - data[i].second);
-      sumOfAbs += fabs(data[i].second); 
-   }
-   LOG(INFO) << "Absolute error: " << errAbs << ", Percent error = " << errAbs/sumOfAbs*100.0; 
+   DatasetError err;
+   error(data,err);
+   LOG(INFO) << "Absolute error: " << err.first << ", Percent error = " << err.second; 
 
    return result;
 }

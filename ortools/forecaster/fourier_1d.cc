@@ -44,7 +44,33 @@ const DATA_COMPL_VAL_TYPE& DenseDataContainer<DATA_COMPL_VAL_TYPE>::l1_norm()
       }
       l1_is_old_=false;
    } 
-}; 
+};
+
+void DenseDataContainer<DATA_COMPL_VAL_TYPE>::error(const DenseDataContainer<DATA_COMPL_VAL_TYPE>& other, DatasetError& err) {
+  DATA_LEN_TYPE size = std::min(N_, other.size());
+  DATA_REAL_VAL_TYPE errAbs(0), errPerc(0), sumOfAbs(0);
+  for (DATA_LEN_TYPE i = 0; i < size; ++i) {
+      //TO DO (dpg): it has to be sqrt of the squares
+      errAbs += fabs(data_[i][0] - other[i][0]);
+      errAbs += fabs(data_[i][1] - other[i][1]);
+      sumOfAbs += fabs(other[i][0]);
+      sumOfAbs += fabs(other[i][1]); 
+  }
+}
+
+void DenseDataContainer<DATA_COMPL_VAL_TYPE>::error(const SparseDataContainer<DATA_COMPL_VAL_TYPE>& other, DatasetError& err) {
+   DATA_LEN_TYPE S = other.size();
+   DATA_REAL_VAL_TYPE errAbs(0), errPerc(0), sumOfAbsOther(0);
+   for (DATA_LEN_TYPE i = 0; i < S; ++i) {
+      //TO DO (dpg): it has to be sqrt of the squares
+      errAbs += fabs(data_[other[i].first][0] - other[i].second[0]);
+      errAbs += fabs(data_[other[i].first][1] - other[i].second[1]);
+      sumOfAbsOther += fabs(other[i].second[0]); 
+      sumOfAbsOther += fabs(other[i].second[1]);
+   }
+   err.first = errAbs;
+   err.second = errAbs/sumOfAbsOther*100.0; 
+}
 
 const DATA_LEN_TYPE DenseDataContainer<DATA_COMPL_VAL_TYPE>::size() const {
    return N_;
@@ -126,6 +152,31 @@ const T& DenseDataContainer<T>::l1_norm()
       l1_is_old_=false;
    } 
 }; 
+
+template<typename T>
+void DenseDataContainer<T>::error(const DenseDataContainer<T>& other, DatasetError& err) {
+  DATA_LEN_TYPE size = std::min(N_, other.size());
+  DATA_REAL_VAL_TYPE errAbs(0), errPerc(0), sumOfAbs(0);
+  for (DATA_LEN_TYPE i = 0; i < size; ++i) {
+      errAbs += fabs(data_[i] - other[i]);
+      sumOfAbs += fabs(other[i]);
+  }
+}
+
+template<typename T>
+void DenseDataContainer<T>::error(const SparseDataContainer<T>& other, DatasetError& err) {
+   DATA_LEN_TYPE S = other.size();
+   DATA_REAL_VAL_TYPE errAbs(0), errPerc(0), sumOfAbsOther(0);
+   for (DATA_LEN_TYPE i = 0; i < S; ++i) {
+      //TO DO (dpg): it has to be sqrt of the squares
+      errAbs += fabs(data_[other[i].first] - other[i].second);
+      errAbs += fabs(data_[other[i].first] - other[i].second);
+      sumOfAbsOther += fabs(other[i].second); 
+      sumOfAbsOther += fabs(other[i].second);
+   }
+   err.first = errAbs;
+   err.second = errAbs/sumOfAbsOther*100.0; 
+}
 
 FFT1DTransform::FFT1DTransform() :
    need_to_clear_(false), in_(nullptr), out_(nullptr), status_(SUCCESS) 
