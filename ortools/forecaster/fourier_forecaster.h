@@ -172,7 +172,7 @@ class FourierForecasterLinear : public FourierForecaster {
      void calculate_l1_norm(const std::vector<MPVariable*>& varX, const std::vector<MPVariable*>& varY,
 		     const DATA_REAL_VAL_TYPE& lambda, FrequencyNorm& l1_norm); 
 };
- 
+
 } // ns: forecaster
 } // ns: operations_research
 
