@@ -542,7 +542,7 @@ TEST_F(FourierForecasterTest, DISABLED_simpleForecastTest3) {
 }
 
 // takes too long so it is disabled. Try it with SCIP solver
-// -- dpg 6-4-19 -- 
+// -- dimitarpg 6-4-19 -- 
 TEST_F(FourierForecasterTest, DISABLED_simpleForecastTest4) {
     FourierForecasterLinear ff("simpleForecasterTest4",FourierForecaster::GLOP);
     DATA_REAL_VAL_TYPE lambda = 0.1;

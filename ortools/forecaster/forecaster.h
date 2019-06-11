@@ -30,7 +30,7 @@ class Forecaster {
 
     // define Prophet-like interface for all classes implementing the Forecaster
     //
-    //TODO (dpg): finish the signature e.g. arguments
+    //TODO (dimitarpg): finish the signature e.g. arguments
     virtual bool fit(const SparseDataContainer<DATA_REAL_VAL_TYPE>& , const DATA_LEN_TYPE&, const DATA_REAL_VAL_TYPE& ) = 0;
 
     virtual bool predict( ) = 0;

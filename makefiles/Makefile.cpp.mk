@@ -299,36 +299,37 @@ endif
 ##################
 
 #GTEST_TESTS_LIBS = $(LIB_DIR)/$(LIB_PREFIX)gtest$A
-GTEST_TESTS_DEPS = \
+GTEST_TESTS_DEPS=\
 	$(SRC_DIR)/ortools/linear_solver/simplemath.h \
-	ortools/forecaster/fourier_forecaster.h \
-	ortools/forecaster/forecaster.h
+	$(SRC_DIR)/ortools/forecaster/fourier_forecaster.* \
+	$(SRC_DIR)/ortools/forecaster/fourier_1d.* \
+	$(SRC_DIR)/ortools/forecaster/forecaster.*
 
 GTEST_TESTS_LNK = $(PRE_LIB)gtest$(POST_LIB) $(OR_TOOLS_LNK)
 ifeq ($(PLATFORM),MACOSX)
 GTEST_TESTS_LDFLAGS = -install_name @rpath/$(LIB_PREFIX)gtest.$L #
 endif
 
-LINEAR_SOLVER_CC_TESTS = \
-my_first_test
+LINEAR_SOLVER_CC_TESTS=\
+	my_first_test
 
-$(OBJ_DIR)/my_first_test.$O: $(GTEST_TESTS_PATH)$Smy_first_test.cc $(GTEST_TESTS_DEP) | $(OBJ_DIR)
+$(OBJ_DIR)/my_first_test.$O: $(GTEST_TESTS_PATH)$Smy_first_test.cc $(GTEST_TESTS_DEPS) | $(OBJ_DIR)
 	$(CCC) $(CFLAGS) -I$(GTEST_PATH) -c $(GTEST_TESTS_PATH)$Smy_first_test.cc $(OBJ_OUT)$(OBJ_DIR)$Smy_first_test.$O
 
 $(BIN_DIR)/my_first_test$E: $(OBJ_DIR)/my_first_test.$O | $(BIN_DIR)
 	$(CCC) $(CLFAGS) $(OBJ_DIR)$Smy_first_test.$O $(GTEST_LNK) $(OR_TOOLS_LNK) $(OR_TOOLS_LDFLAGS) $(EXE_OUT)$(BIN_DIR)$Smy_first_test$E
 
 
-FOURIER_FORECASTER_CC_TESTS = \
-  fourier_dft_test \
-  fourier_forecaster_test
+FOURIER_FORECASTER_CC_TESTS=\
+	fourier_dft_test \
+	fourier_forecaster_test
 
-$(OBJ_DIR)/fourier_dft_test.$O: $(GTEST_TESTS_PATH)$Sfourier_dft_test.cc $(GTEST_TESTS_DEP) | $(OBJ_DIR)
+$(OBJ_DIR)/fourier_dft_test.$O: $(GTEST_TESTS_PATH)$Sfourier_dft_test.cc $(GTEST_TESTS_DEPS) | $(OBJ_DIR)
 	$(CCC) $(CFLAGS) -I$(GTEST_PATH) -I$(FFTW_PATH) -c $(GTEST_TESTS_PATH)$Sfourier_dft_test.cc $(OBJ_OUT)$(OBJ_DIR)$Sfourier_dft_test.$O
 $(BIN_DIR)/fourier_dft_test$E: $(OBJ_DIR)/fourier_dft_test.$O | $(BIN_DIR)
 	$(CCC) $(CFLAGS) $(OBJ_DIR)$Sfourier_dft_test.$O $(GTEST_LNK) $(FFTW_LNK) $(OR_TOOLS_LNK) $(OR_TOOLS_LDFLAGS) $(EXE_OUT)$(BIN_DIR)$Sfourier_dft_test$E
 
-$(OBJ_DIR)/fourier_forecaster_test.$O: $(GTEST_TESTS_PATH)$Sfourier_forecaster_test.cc $(GTEST_TESTS_DEP) | $(OBJ_DIR)
+$(OBJ_DIR)/fourier_forecaster_test.$O: $(GTEST_TESTS_PATH)$Sfourier_forecaster_test.cc $(GTEST_TESTS_DEPS) | $(OBJ_DIR)
 	$(CCC) $(CFLAGS) -I$(GTEST_PATH) -I$(FFTW_PATH) -c $(GTEST_TESTS_PATH)$Sfourier_forecaster_test.cc $(OBJ_OUT)$(OBJ_DIR)$Sfourier_forecaster_test.$O
 
 $(BIN_DIR)/fourier_forecaster_test$E: $(OBJ_DIR)/fourier_forecaster_test.$O | $(BIN_DIR)

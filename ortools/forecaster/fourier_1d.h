@@ -35,9 +35,6 @@ template<typename T>
 using ConstSparseDataContainer = typename std::vector<SparseDataElement<T>> const;
 
 
-
-
-
 // sparse data encoding (SDE) adopted here is kind of run-length encoding:
 // a list of Key-Value pairs ordered by Key in increasing order.
 // Key is of type DATA_IDX_TYPE, Value is of type DATA_REAL_VAL_TYPE
@@ -59,6 +56,10 @@ using ConstSparseDataContainer = typename std::vector<SparseDataElement<T>> cons
 
 class FFT1DTransform;
 
+// first member contains the absolute error and the second member contains 
+// the relative error
+typedef std::pair<DATA_REAL_VAL_TYPE, DATA_REAL_VAL_TYPE> DatasetError;
+
 template<typename T>
 struct DenseDataContainer {
     DenseDataContainer() = delete;
@@ -71,6 +72,8 @@ struct DenseDataContainer {
     const T& operator[] (const DATA_IDX_TYPE&) const;
     const T& NaN() { return NaN_; };
     const T& l1_norm(); 
+    void error(const DenseDataContainer<T>& , DatasetError & );
+    void error(const SparseDataContainer<T>& , const std::vector<DATA_IDX_TYPE>& , DatasetError & );
     T& operator[] (const DATA_IDX_TYPE&);
     friend class FFT1DTransform;
     friend class Forward1DTransform;
@@ -95,6 +98,8 @@ struct DenseDataContainer<DATA_COMPL_VAL_TYPE> {
     ~DenseDataContainer();
     const DATA_COMPL_VAL_TYPE& NaN() { return NaN_; };
     const DATA_COMPL_VAL_TYPE& l1_norm();
+    void error(const DenseDataContainer<DATA_COMPL_VAL_TYPE>& , DatasetError & );
+    void error(const SparseDataContainer<DATA_COMPL_VAL_TYPE>& , const std::vector<DATA_IDX_TYPE>& , DatasetError & );
     DATA_COMPL_VAL_TYPE& operator[] (const DATA_IDX_TYPE&);
     friend class FFT1DTransform;
     friend class Forward1DTransform;

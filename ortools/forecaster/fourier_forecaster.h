@@ -135,6 +135,8 @@ class FourierForecaster : public Forecaster {
      std::unique_ptr<DenseDataContainer<DATA_REAL_VAL_TYPE>> result_;
 };
 
+typedef std::pair<DATA_REAL_VAL_TYPE,DATA_REAL_VAL_TYPE> FrequencyNorm;
+
 class FourierForecasterLinear : public FourierForecaster {
    public:
      FourierForecasterLinear(const std::string& name, enum OptimizationSuite opt_suite);
@@ -142,7 +144,7 @@ class FourierForecasterLinear : public FourierForecaster {
      
      // define Prophet-like interface for the classes implementing Forecaster
      //
-     //TODO (dpg): finish the method signatures or remove unnecessary methods
+     //TODO (dimitarpg): finish the method signatures or remove unnecessary methods
      bool fit(const SparseDataContainer<DATA_REAL_VAL_TYPE>& , const DATA_LEN_TYPE&, const DATA_REAL_VAL_TYPE& ) override;
      bool predict( ) override;
      bool predict_trend( ) override;
@@ -167,9 +169,13 @@ class FourierForecasterLinear : public FourierForecaster {
      //END: define Prophet-like interface for the classes implementing Forecaster
      ~FourierForecasterLinear();
    protected:
-
+     void calculate_l1_norm(const std::vector<MPVariable*>& varX, const std::vector<MPVariable*>& varY,
+         const DATA_REAL_VAL_TYPE& lambda, FrequencyNorm& l1_norm); 
+#ifndef NDEBUG
+     void print_frequencies(const std::vector<MPVariable*>& varX, const std::vector<MPVariable*>& varY);
+#endif
 };
- 
+
 } // ns: forecaster
 } // ns: operations_research
 

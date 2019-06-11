@@ -5,7 +5,7 @@
 namespace operations_research {
 namespace forecaster {
 
-//TODO (dpg):
+//TODO (dimitarpg):
 FourierForecaster::FourierForecaster(const std::string& name, enum OptimizationSuite opt_suite) : 
        name_(name), opt_suite_(opt_suite), status_(SUCCESS)	
 {
@@ -15,7 +15,7 @@ FourierForecaster::FourierForecaster(const std::string& name, enum OptimizationS
    }
 }
 
-//TODO (dpg):
+//TODO (dimitarpg):
 Forecaster::ForecasterType FourierForecasterLinear::GetType() {
    return Forecaster::ForecasterType::FourierLinear; 
 }
@@ -29,7 +29,7 @@ bool FourierForecaster::init( ) {
        return false;
 }
 
-//TODO (dpg):
+//TODO (dimitarpg):
 FourierForecaster::~FourierForecaster() {
 }
 
@@ -171,7 +171,7 @@ bool FourierForecaster::OptSuiteToString(const OptimizationSuite optimization_su
 FourierForecasterLinear::FourierForecasterLinear(const std::string& name, enum OptimizationSuite opt_suite) :
    FourierForecaster(name, opt_suite)  
 {
-//TODO: (dpg) finish this
+//TODO: (dimitarpg) finish this
 }
 
 FourierForecasterLinear::~FourierForecasterLinear() {
@@ -179,7 +179,7 @@ FourierForecasterLinear::~FourierForecasterLinear() {
 }
 
 // Prophet-like interface for all classes implementing Forecaster
-// TODO (dpg): finish/remove the methods signatures
+// TODO (dimitarpg): finish/remove the methods signatures
 // LP Problem solved by the Fourier forecaster
 //
 
@@ -338,24 +338,65 @@ bool FourierForecasterLinear::fit(const SparseDataContainer<DATA_REAL_VAL_TYPE>&
          (*result_)[i] += varX[j]->solution_value() * cos( ( 2.0 * M_PI * i * j ) / N ) - varY[j]->solution_value() * sin ( ( 2.0 * M_PI * i * j ) / N ) ; 
       }
    }
-   double sumOfAbsYRe=0.0, sumOfAbsYIm=0.0;
-   for (int i = 0; i < N; ++i) {
-     LOG(INFO) << "varX[" << i << "]=" << (*varX[i]).solution_value() << ", " << "varY[" << i << "]=" << (*varY[i]).solution_value() << std::endl;
-     sumOfAbsYRe += std::fabs((*varX[i]).solution_value());
-     sumOfAbsYIm += std::fabs((*varY[i]).solution_value());
-   }
-   LOG(INFO) << "sumOfAbsYRe = " << sumOfAbsYRe << ", " << "sumOfAbsYIm = " << sumOfAbsYIm;
 
+   FrequencyNorm freqNorm;
+#ifndef NDEBUG
+     print_frequencies(varX, varY);
+#endif
+   calculate_l1_norm(varX, varY, lambda, freqNorm);
+   LOG(INFO) << "sumOfAbsYRe = " << freqNorm.first << ", " << "sumOfAbsYIm = " << freqNorm.second;
 
-   double errAbs=0.0, errPerc=0.0, sumOfAbs=0.0;
-   for (int i = 0; i < S; ++i) {
-      errAbs += fabs((*result_)[i] - data[i].second);
-      sumOfAbs += fabs(data[i].second); 
-   }
-   LOG(INFO) << "Absolute error: " << errAbs << ", Percent error = " << errAbs/sumOfAbs*100.0; 
+   std::vector<DATA_IDX_TYPE> index(S);
+   // we assume that the reconstructed signal corresponding to the original sampled datapoints is located
+   // in the first S slots of the signal obtained by applying inverse FFT to y.
+   // there has to be analytical reasoning why the first S slots contain the reconstructed signal 
+   // corresponding to the original sampled time signal -- dimitarpg 6-11-19 
+   std::generate(index.begin(), index.end(), []() -> int { static int i = 0; return i++; });
+   DatasetError err;
+   result_->error(data,index,err);
+   LOG(INFO) << "Absolute error: " << err.first << ", Percent error = " << err.second; 
 
    return result;
 }
+#ifndef NDEBUG
+void FourierForecasterLinear::print_frequencies(const std::vector<MPVariable*>& varX, const std::vector<MPVariable*>& varY) {
+   auto N = std::max(varX.size(), varY.size());
+   for (int i = 0; i < N; ++i) {
+      if (i < varX.size()) {
+          if (i < varY.size())
+          {
+             LOG(INFO) << "varX[" << i << "]=" << (*varX[i]).solution_value() << ", " << "varY[" << i << "]=" << (*varY[i]).solution_value();
+          } else {
+             LOG(INFO) << "varX[" << i << "]=" << (*varX[i]).solution_value() << ", " << "varY[" << i << "] -> missing"; 
+          }
+      } 
+      else {
+         if (i < varY.size())
+         {
+            LOG(INFO) << "varX[" << i << "]->missing, " << "varY[" << i << "]=" << (*varY[i]).solution_value();
+         }
+      }
+   }
+}
+#endif
+
+void FourierForecasterLinear::calculate_l1_norm(const std::vector<MPVariable*>& varX, const std::vector<MPVariable*>& varY,
+		     const DATA_REAL_VAL_TYPE& lambda, FrequencyNorm& l1_norm) {
+   double sumOfAbsYRe=0.0, sumOfAbsYIm=0.0;
+   auto N = std::max(varX.size(), varY.size());
+   for (int i = 0; i < N; ++i) {
+     if (i < varX.size()) {
+        sumOfAbsYRe += std::fabs((*varX[i]).solution_value());
+     }
+     if (i < varY.size()) {
+        sumOfAbsYIm += std::fabs((*varY[i]).solution_value());
+     }
+   }
+   l1_norm.first = sumOfAbsYRe;
+   l1_norm.second = sumOfAbsYIm;
+}	
+
+
 
 bool FourierForecasterLinear::predict( ) {
    return false;

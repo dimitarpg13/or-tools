@@ -20,7 +20,7 @@ const DATA_COMPL_VAL_TYPE& DenseDataContainer<DATA_COMPL_VAL_TYPE>::operator[](c
    }
    else
    {
-       //TODO (dpg): maybe we should throw instead of returning
+       //TODO (dimitarpg): maybe we should throw instead of returning
        return NaN_;
    } 
 }
@@ -44,7 +44,36 @@ const DATA_COMPL_VAL_TYPE& DenseDataContainer<DATA_COMPL_VAL_TYPE>::l1_norm()
       }
       l1_is_old_=false;
    } 
-}; 
+};
+
+void DenseDataContainer<DATA_COMPL_VAL_TYPE>::error(const DenseDataContainer<DATA_COMPL_VAL_TYPE>& other, 
+   DatasetError& err) 
+{
+  DATA_LEN_TYPE size = std::min(N_, other.size());
+  DATA_REAL_VAL_TYPE errAbs(0), errPerc(0), sumOfAbs(0);
+  for (DATA_LEN_TYPE i = 0; i < size; ++i) {
+      //TO DO (dimitarpg): it has to be sqrt of the squares
+      errAbs += fabs(data_[i][0] - other[i][0]);
+      errAbs += fabs(data_[i][1] - other[i][1]);
+      sumOfAbs += fabs(other[i][0]);
+      sumOfAbs += fabs(other[i][1]); 
+  }
+}
+
+void DenseDataContainer<DATA_COMPL_VAL_TYPE>::error(const SparseDataContainer<DATA_COMPL_VAL_TYPE>& other, 
+   const std::vector<DATA_IDX_TYPE>& index, DatasetError& err) {
+   DATA_LEN_TYPE S = other.size();
+   DATA_REAL_VAL_TYPE errAbs(0), errPerc(0), sumOfAbsOther(0);
+   for (DATA_LEN_TYPE i = 0; i < S; ++i) {
+      //TO DO (dimitarpg): it has to be sqrt of the squares
+      errAbs += fabs(data_[index[i]][0] - other[i].second[0]);
+      errAbs += fabs(data_[index[i]][1] - other[i].second[1]);
+      sumOfAbsOther += fabs(other[i].second[0]); 
+      sumOfAbsOther += fabs(other[i].second[1]);
+   }
+   err.first = errAbs;
+   err.second = errAbs/sumOfAbsOther*100.0;
+}
 
 const DATA_LEN_TYPE DenseDataContainer<DATA_COMPL_VAL_TYPE>::size() const {
    return N_;
@@ -90,7 +119,7 @@ const T& DenseDataContainer<T>::operator[](const DATA_IDX_TYPE& idx) const {
    }
    else
    {
-       //TODO (dpg): maybe we should throw instead of returning
+       //TODO (dimitarpg): maybe we should throw instead of returning
        return NaN_;
    } 
 }
@@ -126,6 +155,30 @@ const T& DenseDataContainer<T>::l1_norm()
       l1_is_old_=false;
    } 
 }; 
+
+template<typename T>
+void DenseDataContainer<T>::error(const DenseDataContainer<T>& other, DatasetError& err) {
+  DATA_LEN_TYPE size = std::min(N_, other.size());
+  DATA_REAL_VAL_TYPE errAbs(0), errPerc(0), sumOfAbs(0);
+  for (DATA_LEN_TYPE i = 0; i < size; ++i) {
+      errAbs += fabs(data_[i] - other[i]);
+      sumOfAbs += fabs(other[i]);
+  }
+}
+
+template<typename T>
+void DenseDataContainer<T>::error(const SparseDataContainer<T>& other, const std::vector<DATA_IDX_TYPE>& index, 
+   DatasetError& err) {
+   DATA_LEN_TYPE S = other.size();
+   DATA_REAL_VAL_TYPE errAbs(0), errPerc(0), sumOfAbsOther(0);
+   for (DATA_LEN_TYPE i = 0; i < S; ++i) {
+      //TO DO (dimitarpg): it has to be sqrt of the squares
+      errAbs += fabs(data_[index[i]] - other[i].second);
+      sumOfAbsOther += fabs(other[i].second); 
+   }
+   err.first = errAbs;
+   err.second = errAbs/sumOfAbsOther*100.0;
+}
 
 FFT1DTransform::FFT1DTransform() :
    need_to_clear_(false), in_(nullptr), out_(nullptr), status_(SUCCESS) 
@@ -252,19 +305,19 @@ const int FFT1DTransform::get_status() {
    return status_;
 }
 
-//TODO (dpg): 
+//TODO (dimitarpg): 
 Forward1DTransform::Forward1DTransform()  
 {
 
 }
 
-//TODO (dpg): 
+//TODO (dimitarpg): 
 Forward1DTransform::~Forward1DTransform() {
    clear();
 }
 
 void Forward1DTransform::plan() {
-   //TODO (dpg): execute here
+   //TODO (dimitarpg): execute here
    //
    if (N_ > 0)
       plan_ = fftw_plan_dft_1d(N_, in_->data_, out_->data_, FFTW_FORWARD, FFTW_MEASURE);
@@ -272,18 +325,18 @@ void Forward1DTransform::plan() {
       status_ |= MISSING_DATA;
 }
 
-//TODO (dpg): 
+//TODO (dimitarpg): 
 Inverse1DTransform::Inverse1DTransform() {
 
 }
 
-//TODO (dpg):
+//TODO (dimitarpg):
 Inverse1DTransform::~Inverse1DTransform() {
 
 }
 
 void Inverse1DTransform::plan() {
-   //TODO (dpg): execute here
+   //TODO (dimitarpg): execute here
    //
    if (N_ > 0)
        plan_ = fftw_plan_dft_1d(N_, in_->data_, out_->data_, FFTW_BACKWARD, FFTW_MEASURE);
