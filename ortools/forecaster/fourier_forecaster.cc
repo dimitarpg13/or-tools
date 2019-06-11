@@ -347,7 +347,7 @@ bool FourierForecasterLinear::fit(const SparseDataContainer<DATA_REAL_VAL_TYPE>&
    LOG(INFO) << "sumOfAbsYRe = " << sumOfAbsYRe << ", " << "sumOfAbsYIm = " << sumOfAbsYIm;
 
    DatasetError err;
-   error(data,err);
+   result_->error(data,err);
    LOG(INFO) << "Absolute error: " << err.first << ", Percent error = " << err.second; 
 
    return result;
