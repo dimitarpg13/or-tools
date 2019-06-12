@@ -94,6 +94,6 @@ int main(int argc, char** argv) {
   google::InitGoogleLogging(argv[0]);
   FLAGS_logtostderr = 1;
   //operations_research::RunAllExamples();
-  RunMixedIntegerProgrammingExample(operations_research::MPSolver::GUROBI_MIXED_INTEGER_PROGRAMMING);
+  RunMixedIntegerProgrammingExample(operations_research::MPSolver::SCIP_MIXED_INTEGER_PROGRAMMING);
   return EXIT_SUCCESS;
 }
