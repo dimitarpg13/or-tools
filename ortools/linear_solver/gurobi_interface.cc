@@ -923,7 +923,7 @@ bool SOSConstraintAggregator::memb_init() {
   CHECK(iface_->last_variable_index_ == 0 ||
         iface_->last_variable_index_ == solver_->variables().size());
   CHECK(iface_->last_sos_constraint_index_ == 0 ||
-        iface_->last_sos_constraint_index_ == solver_->constraints_.size());
+        iface_->last_sos_constraint_index_ == solver_->sos_constraints_.size());
   int total_num_sos_rows = solver_->sos_constraints_.size();
   
   bool res = true;
