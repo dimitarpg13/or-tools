@@ -31,19 +31,17 @@ const DATA_COMPL_VAL_TYPE* const* DenseDataContainer<DATA_COMPL_VAL_TYPE>::data(
 
 const DATA_COMPL_VAL_TYPE& DenseDataContainer<DATA_COMPL_VAL_TYPE>::l1_norm() 
 {
-   if (!l1_is_old_) {
-       return l1_norm_;
-   }
-   else
+   if (l1_is_old_) 
    {
       l1_norm_[0] = DATA_REAL_VAL_TYPE(0);
-      l1_norm_[1] = DATA_REAL_VAL_TYPE(1);
+      l1_norm_[1] = DATA_REAL_VAL_TYPE(0);
       for (int i = 0; i < N_; ++i) {
         l1_norm_[0] += std::fabs(data_[i][0]);
         l1_norm_[1] += std::fabs(data_[i][1]);
       }
       l1_is_old_=false;
-   } 
+   }
+   return l1_norm_; 
 };
 
 void DenseDataContainer<DATA_COMPL_VAL_TYPE>::error(const DenseDataContainer<DATA_COMPL_VAL_TYPE>& other, 
@@ -143,17 +141,15 @@ T& DenseDataContainer<T>::operator[](const DATA_IDX_TYPE& idx) {
 template<typename T>
 const T& DenseDataContainer<T>::l1_norm() 
 {
-   if (!l1_is_old_) {
-       return l1_norm_;
-   }
-   else
+   if (l1_is_old_) 
    {
       l1_norm_ = T(0);
       for (int i = 0; i < N_; ++i) {
         l1_norm_ += std::fabs(data_[i]);
       }
       l1_is_old_=false;
-   } 
+   }
+   return l1_norm_; 
 }; 
 
 template<typename T>
