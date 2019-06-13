@@ -26,7 +26,7 @@ class Forecaster {
     };
 
     virtual const ForecasterStatus get_status() const = 0;
-    virtual DenseDataContainer<DATA_REAL_VAL_TYPE>* get_result()  = 0;
+    virtual DenseDataContainer<DATA_REAL_VAL_TYPE>& get_result()  = 0;
 
     // define Prophet-like interface for all classes implementing the Forecaster
     //

@@ -339,23 +339,36 @@ bool FourierForecasterLinear::fit(const SparseDataContainer<DATA_REAL_VAL_TYPE>&
       }
    }
 
-   FrequencyNorm freqNorm;
 #ifndef NDEBUG
      print_frequencies(varX, varY);
 #endif
-   calculate_l1_norm(varX, varY, lambda, freqNorm);
-   LOG(INFO) << "sumOfAbsYRe = " << freqNorm.first << ", " << "sumOfAbsYIm = " << freqNorm.second;
+   calculate_l1_norm(varX, varY, lambda, freqNorm_, l1_norm_);
+   LOG(INFO) << "sumOfAbsYRe = " << freqNorm_.first << ", " << "sumOfAbsYIm = " << freqNorm_.second;
 
    std::vector<DATA_IDX_TYPE> index(S);
+   for (int i = 0; i < S; ++i)
+   {
+      index[i]=i;
+   }
    // we assume that the reconstructed signal corresponding to the original sampled datapoints is located
    // in the first S slots of the signal obtained by applying inverse FFT to y.
    // there has to be analytical reasoning why the first S slots contain the reconstructed signal 
    // corresponding to the original sampled time signal -- dimitarpg 6-11-19 
-   std::generate(index.begin(), index.end(), []() -> int { static int i = 0; return i++; });
+   //std::generate(index.begin(), index.end(), []() -> int { static int i = 0; return i++; });
    DatasetError err;
    result_->error(data,index,err);
    LOG(INFO) << "Absolute error: " << err.first << ", Percent error = " << err.second; 
-
+   percentErr_ = err.second;
+   int M = d/2;
+   int recoveredSparsity=0;
+   const double largeEnough = 1e-4;
+   for (int i = 1; i < M; ++i) {
+      if (std::abs(varX[i]->solution_value()) >= largeEnough || std::abs(varY[i]->solution_value()) >= largeEnough) {
+         recoveredSparsity++;
+      }
+   }
+   LOG(INFO) << "Recovered Sparsity: " << recoveredSparsity; 
+   recoveredSparsity_ = recoveredSparsity;
    return result;
 }
 #ifndef NDEBUG
@@ -381,19 +394,27 @@ void FourierForecasterLinear::print_frequencies(const std::vector<MPVariable*>& 
 #endif
 
 void FourierForecasterLinear::calculate_l1_norm(const std::vector<MPVariable*>& varX, const std::vector<MPVariable*>& varY,
-		     const DATA_REAL_VAL_TYPE& lambda, FrequencyNorm& l1_norm) {
-   double sumOfAbsYRe=0.0, sumOfAbsYIm=0.0;
+		     const DATA_REAL_VAL_TYPE& lambda, FrequencyNorm& freq_norm, DATA_REAL_VAL_TYPE& l1_norm) {
+   DATA_REAL_VAL_TYPE sumOfAbsYRe= DATA_REAL_VAL_TYPE(0), sumOfAbsYIm= DATA_REAL_VAL_TYPE(0);
    auto N = std::max(varX.size(), varY.size());
+   DATA_REAL_VAL_TYPE abs_re = DATA_REAL_VAL_TYPE(0), abs_im = DATA_REAL_VAL_TYPE(0);
+   l1_norm = DATA_REAL_VAL_TYPE(0);
    for (int i = 0; i < N; ++i) {
      if (i < varX.size()) {
-        sumOfAbsYRe += std::fabs((*varX[i]).solution_value());
+        abs_re = std::fabs((*varX[i]).solution_value());
+        sumOfAbsYRe += abs_re;
+        l1_norm += abs_re * abs_re;
      }
      if (i < varY.size()) {
-        sumOfAbsYIm += std::fabs((*varY[i]).solution_value());
+        abs_im = std::fabs((*varY[i]).solution_value());
+        sumOfAbsYIm += abs_im;
+        l1_norm += abs_im * abs_im;
      }
    }
-   l1_norm.first = sumOfAbsYRe;
-   l1_norm.second = sumOfAbsYIm;
+   freq_norm.first = sumOfAbsYRe;
+   freq_norm.second = sumOfAbsYIm;
+   l1_norm = sqrt(l1_norm);
+
 }	
 
 

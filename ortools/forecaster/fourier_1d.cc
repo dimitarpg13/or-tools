@@ -5,13 +5,19 @@ namespace forecaster {
 
 DenseDataContainer<DATA_COMPL_VAL_TYPE>::DenseDataContainer(const DATA_LEN_TYPE N) : 
 	N_(N), l1_is_old_(false) {
-   if (N > 0)
+   if (N > 0) {
      data_ = (DATA_COMPL_VAL_TYPE *) fftw_malloc(sizeof(DATA_COMPL_VAL_TYPE) * N);
+     for (int i = 0; i < N; ++i) {
+        data_[i][0] = 0.0;
+        data_[i][1] = 0.0;
+     }
+   }
    else
      data_ = nullptr;
    NaN_[0] =  std::numeric_limits<DATA_REAL_VAL_TYPE>::quiet_NaN();
    NaN_[1] =  std::numeric_limits<DATA_REAL_VAL_TYPE>::quiet_NaN();
-
+   l1_norm_[0]=0;
+   l1_norm_[1]=0;
 }
 
 const DATA_COMPL_VAL_TYPE& DenseDataContainer<DATA_COMPL_VAL_TYPE>::operator[](const DATA_IDX_TYPE& idx) const {
@@ -56,6 +62,9 @@ void DenseDataContainer<DATA_COMPL_VAL_TYPE>::error(const DenseDataContainer<DAT
       sumOfAbs += fabs(other[i][0]);
       sumOfAbs += fabs(other[i][1]); 
   }
+  err.first = errAbs;
+  err.second = errAbs/sumOfAbs*100.0;
+
 }
 
 void DenseDataContainer<DATA_COMPL_VAL_TYPE>::error(const SparseDataContainer<DATA_COMPL_VAL_TYPE>& other, 
@@ -92,9 +101,13 @@ DenseDataContainer<DATA_COMPL_VAL_TYPE>::~DenseDataContainer() {
 }
 
 template<typename T>
-DenseDataContainer<T>::DenseDataContainer(const DATA_LEN_TYPE N) : N_(N), l1_is_old_(false) {
-   if (N > 0)
+DenseDataContainer<T>::DenseDataContainer(const DATA_LEN_TYPE N) : N_(N), l1_is_old_(false), l1_norm_(0) {
+   if (N > 0) {
      data_ = (T *) calloc(N, sizeof(T));
+     for (int i = 0; i < N; ++i) {
+        data_[i] = 0;
+     }
+   }
    else
      data_ = nullptr;
    NaN_ =  std::numeric_limits<T>::quiet_NaN();
@@ -297,6 +310,7 @@ DenseDataContainer<DATA_COMPL_VAL_TYPE>& FFT1DTransform::get_result() {
    return *out_;
 }
 
+
 const int FFT1DTransform::get_status() {
    return status_;
 }
@@ -309,7 +323,7 @@ Forward1DTransform::Forward1DTransform()
 
 //TODO (dimitarpg): 
 Forward1DTransform::~Forward1DTransform() {
-   clear();
+   
 }
 
 void Forward1DTransform::plan() {
@@ -328,7 +342,7 @@ Inverse1DTransform::Inverse1DTransform() {
 
 //TODO (dimitarpg):
 Inverse1DTransform::~Inverse1DTransform() {
-
+   
 }
 
 void Inverse1DTransform::plan() {

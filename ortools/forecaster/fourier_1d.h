@@ -123,6 +123,9 @@ class FFT1DTransform {
       UNSPECIFIED=16
     };
     FFT1DTransform();
+    ~FFT1DTransform() { 
+      clear(); 
+     };
     void execute(ConstSparseDataContainer<DATA_REAL_VAL_TYPE> & , DATA_LEN_TYPE N);
     void execute(ConstSparseDataContainer<DATA_COMPL_VAL_TYPE> & , DATA_LEN_TYPE N);
 

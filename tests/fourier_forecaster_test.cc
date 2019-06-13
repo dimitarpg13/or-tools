@@ -400,58 +400,80 @@ class FourierForecasterTest : public ::testing::Test {
      return std::unique_ptr<SparseDataContainer<DATA_REAL_VAL_TYPE>>(sampled_time_signal_from_sparse_spectrum);
   }
 
-  std::unique_ptr<SparseDataContainer<DATA_REAL_VAL_TYPE>> prepare_dataset_9() {
-     
-     Inverse1DTransform ifftTr;
-     auto& dataset9 = ifftTr.get_container(dataset9_len_);
+  void init_dataset_9(DenseDataContainer<DATA_COMPL_VAL_TYPE>& dataset, DATA_LEN_TYPE N) {
+     dataset[0][0]=1.0;
+     dataset[0][1]=0.0;
+     dataset[N/2][0]=0.0;
+     dataset[N/2][1]=0.0;
+
+     dataset[N/100][0] = 10;
+     dataset[N/100][1] = 10;
+
+     dataset[7*N/100][0] = 5;
+     dataset[7*N/100][1] = 1;
+
+     dataset[15*N/100][0] = 3;
+     dataset[15*N/100][1] = -2;
+
+     dataset[23*N/100][0] = 9;
+     dataset[23*N/100][1] = -1;
+
+     dataset[31*N/100][0] = 12;
+     dataset[31*N/100][1] = -0.5;
+
+     dataset[N-N/100][0] = 10;
+     dataset[N-N/100][1] = -10;
+
+     dataset[N-7*N/100][0] = 5;
+     dataset[N-7*N/100][1] = -1;
+
+     dataset[N-15*N/100][0] = 3;
+     dataset[N-15*N/100][1] = 2;
+
+     dataset[N-23*N/100][0] = 9;
+     dataset[N-23*N/100][1] = 1;
+
+     dataset[N-31*N/100][0] = 12;
+     dataset[N-31*N/100][1] = 0.5;
+
+  }
+
+  void prepare_dataset_9(int sample_size, SparseDataContainer<DATA_REAL_VAL_TYPE>& sampled_time_signal_from_sparse_spectrum) {
      
      // dataset 9 - 5 non-zero frequencies + DC component, zeros everywhere else
      //
-     dataset9[0][0]=1.0;
-     dataset9[0][1]=0.0;
-     dataset9[50][0]=0.0;
-     dataset9[50][1]=0.0;
+     int d = dataset9_len_;
+     int N = dataset9_len_;
+     DenseDataContainer<DATA_COMPL_VAL_TYPE> dataset9(N);
 
-     dataset9[1][0] = 10;
-     dataset9[1][1] = 10;
-
-     dataset9[7][0] = 5;
-     dataset9[7][1] = 1;
-
-     dataset9[15][0] = 3;
-     dataset9[15][1] = -2;
-
-     dataset9[23][0] = 9;
-     dataset9[23][1] = -1;
-
-     dataset9[31][0] = 12;
-     dataset9[31][1] = -0.5;
-
-     dataset9[99][0] = 10;
-     dataset9[99][1] = -10;
-
-     dataset9[93][0] = 5;
-     dataset9[93][1] = -1;
-
-     dataset9[85][0] = 3;
-     dataset9[85][1] = 2;
-
-     dataset9[77][0] = 9;
-     dataset9[77][1] = 1;
-
-     dataset9[69][0] = 12;
-     dataset9[69][1] = 0.5;
-
+     init_dataset_9(dataset9, dataset9_len_);   
+ 
      LOG(INFO) << "Original Data: sumOfAbsYRe = " << dataset9.l1_norm()[0] << ", sumOfAbsYIm = " << dataset9.l1_norm()[1];
-
-     ifftTr.execute();
-     auto& time_signal_from_sparse_spectrum = ifftTr.get_result();
-     const DATA_IDX_TYPE sampled_time_signal_len = dataset9_len_ / dataset9_sample_period_;
-     SparseDataContainer<DATA_REAL_VAL_TYPE>* sampled_time_signal_from_sparse_spectrum = new SparseDataContainer<DATA_REAL_VAL_TYPE>(); 
-     for (int i = 0; i < dataset9_len_; i+=dataset9_sample_period_) {
-	(*sampled_time_signal_from_sparse_spectrum).push_back({i,time_signal_from_sparse_spectrum[i][0]});
+     result9_ = std::unique_ptr<DenseDataContainer<DATA_REAL_VAL_TYPE>>(new DenseDataContainer<DATA_REAL_VAL_TYPE>(d));
+     for (int i=0; i < d; ++i) {
+       for (int j=0; j < d; ++j) {
+          (*result9_)[i] += dataset9[j][0] * cos( ( 2.0 * M_PI * i * j ) / N ) - dataset9[j][1] * sin ( ( 2.0 * M_PI * i * j ) / N ) ; 
+       }
      }
-     return std::unique_ptr<SparseDataContainer<DATA_REAL_VAL_TYPE>>(sampled_time_signal_from_sparse_spectrum);
+
+      
+      /* initialize random seed: */
+     srand (time(NULL));     
+     std::set<int> ind; 
+ 
+     int last = -1;
+     std::cout << "Omega : ";
+     for (int i  = 0; ind.size() < sample_size; ++i) {
+        last = rand() % N;
+        ind.insert(last);
+     } 
+
+     LOG(INFO) << "Signal Sample Size: " << ind.size();
+     for (auto it = ind.begin(); it != ind.end(); ++it)  {
+         std::cout << *it << ", ";
+	     sampled_time_signal_from_sparse_spectrum.push_back({*it,(*result9_)[*it]});
+     }
+     std::cout << std::endl;
   }
 
   void prepare_datasets() {
@@ -494,8 +516,15 @@ class FourierForecasterTest : public ::testing::Test {
 
   DATA_LEN_TYPE dataset9_sample_period_ = 10;
 
+  DATA_LEN_TYPE dataset11_len_ = 100;
+
+  DATA_LEN_TYPE dataset11_sample_period_ = 10;
+
   std::unordered_map<FourierForecaster::OptimizationSuite,DATA_REAL_VAL_TYPE> round_off_error_small_dataset_;
   std::unordered_map<FourierForecaster::OptimizationSuite,DATA_REAL_VAL_TYPE> round_off_error_large_dataset_;
+
+  std::unique_ptr<DenseDataContainer<DATA_REAL_VAL_TYPE>> result9_;
+ // Inverse1DTransform ifftTr11_; 
 
   // Objects declared here can be used by all tests in the test case for Foo.
 };
@@ -506,39 +535,36 @@ TEST_F(FourierForecasterTest, DISABLED_simpleForecastTest1) {
     FourierForecasterLinear ff("simpleForecasterTest1",FourierForecaster::GLOP);
     DATA_REAL_VAL_TYPE lambda = 0.1;
     ff.fit(dataset1_, dataset1_len_, lambda);
-    auto res = ff.get_result();
-    EXPECT_TRUE(res != nullptr);
+    auto& res = ff.get_result();
     const auto err = round_off_error_small_dataset_[ff.OptSuite()];
-    EXPECT_TRUE(std::fabs((*res)[0] - 1.0) < err); 
-    EXPECT_TRUE(std::fabs((*res)[1] - 1.0) < err);
-    EXPECT_TRUE(std::fabs((*res)[2] - 0.0) < err);
-    EXPECT_TRUE(std::fabs((*res)[3] - 0.0) < err);
+    EXPECT_TRUE(std::fabs(res[0] - 1.0) < err); 
+    EXPECT_TRUE(std::fabs(res[1] - 1.0) < err);
+    EXPECT_TRUE(std::fabs(res[2] - 0.0) < err);
+    EXPECT_TRUE(std::fabs(res[3] - 0.0) < err);
 }
 
 TEST_F(FourierForecasterTest, DISABLED_simpleForecastTest2) {
     FourierForecasterLinear ff("simpleForecasterTest2",FourierForecaster::GLOP);
     DATA_REAL_VAL_TYPE lambda = 0.1;
     ff.fit(dataset2_, dataset2_len_, lambda);
-    auto res = ff.get_result();
-    EXPECT_TRUE(res != nullptr);
+    auto& res = ff.get_result();
     const auto err = round_off_error_small_dataset_[ff.OptSuite()];
-    EXPECT_TRUE(std::fabs((*res)[0] - 2.0) < err); 
-    EXPECT_TRUE(std::fabs((*res)[1] - 2.0) < err);
-    EXPECT_TRUE(std::fabs((*res)[2] - 0.0) < err);
-    EXPECT_TRUE(std::fabs((*res)[3] - 0.0) < err);
+    EXPECT_TRUE(std::fabs(res[0] - 2.0) < err); 
+    EXPECT_TRUE(std::fabs(res[1] - 2.0) < err);
+    EXPECT_TRUE(std::fabs(res[2] - 0.0) < err);
+    EXPECT_TRUE(std::fabs(res[3] - 0.0) < err);
 }
 
 TEST_F(FourierForecasterTest, DISABLED_simpleForecastTest3) {
     FourierForecasterLinear ff("simpleForecasterTest3",FourierForecaster::GLOP);
     DATA_REAL_VAL_TYPE lambda = 0.1;
     ff.fit(dataset3_, dataset3_len_, lambda);
-    auto res = ff.get_result();
-    EXPECT_TRUE(res != nullptr);
+    auto& res = ff.get_result();
     const auto err = round_off_error_small_dataset_[ff.OptSuite()];
-    EXPECT_TRUE(std::fabs((*res)[0] - 1.0) < err); 
-    EXPECT_TRUE(std::fabs((*res)[1] - 0.0) < err);
-    EXPECT_TRUE(std::fabs((*res)[2] - 1.0) < err);
-    EXPECT_TRUE(std::fabs((*res)[3] - 0.0) < err);
+    EXPECT_TRUE(std::fabs(res[0] - 1.0) < err); 
+    EXPECT_TRUE(std::fabs(res[1] - 0.0) < err);
+    EXPECT_TRUE(std::fabs(res[2] - 1.0) < err);
+    EXPECT_TRUE(std::fabs(res[3] - 0.0) < err);
 }
 
 // takes too long so it is disabled. Try it with SCIP solver
@@ -547,13 +573,12 @@ TEST_F(FourierForecasterTest, DISABLED_simpleForecastTest4) {
     FourierForecasterLinear ff("simpleForecasterTest4",FourierForecaster::GLOP);
     DATA_REAL_VAL_TYPE lambda = 0.1;
     ff.fit(dataset4_, dataset4_len_, lambda);
-    auto res = ff.get_result();
-    EXPECT_TRUE(res != nullptr);
+    auto& res = ff.get_result();
     const auto err = round_off_error_large_dataset_[ff.OptSuite()];
-    EXPECT_TRUE(std::fabs((*res)[0] - 1.0) < err); 
-    EXPECT_TRUE(std::fabs((*res)[1] - 0.0) < err);
-    EXPECT_TRUE(std::fabs((*res)[50] - 0.0) < err);
-    EXPECT_TRUE(std::fabs((*res)[99] - 1.0) < err);
+    EXPECT_TRUE(std::fabs(res[0] - 1.0) < err); 
+    EXPECT_TRUE(std::fabs(res[1] - 0.0) < err);
+    EXPECT_TRUE(std::fabs(res[50] - 0.0) < err);
+    EXPECT_TRUE(std::fabs(res[99] - 1.0) < err);
 }
 
 TEST_F(FourierForecasterTest, DISABLED_subsampleInFreqDomainTest) {
@@ -617,7 +642,7 @@ TEST_F(FourierForecasterTest, DISABLED_superresolutionTest1) {
     FourierForecasterLinear ff("superresolutionTest1",FourierForecaster::SCIP);
     DATA_REAL_VAL_TYPE lambda = 1; 
     ff.fit(*sparse_time_signal, dataset5_len_, lambda);
-    auto res = ff.get_result();
+    auto& res = ff.get_result();
     
 
     EXPECT_TRUE(true);
@@ -631,21 +656,93 @@ TEST_F(FourierForecasterTest, DISABLED_superresolutionTest2) {
     FourierForecasterLinear ff("superresolutionTest1",FourierForecaster::SCIP);
     DATA_REAL_VAL_TYPE lambda = 1; 
     ff.fit(*sparse_time_signal, dataset6_len_, lambda);
-    auto res = ff.get_result();
+    auto& res = ff.get_result();
     
 
     EXPECT_TRUE(true);
 }
-
+ 
 TEST_F(FourierForecasterTest, superresolutionTest3) {
     using operations_research::forecaster::Forward1DTransform;
     using operations_research::forecaster::Inverse1DTransform;
     // construct frequency spectrum
-    auto sparse_time_signal = prepare_dataset_9();
-    FourierForecasterLinear ff("superresolutionTest1",FourierForecaster::SCIP);
-    DATA_REAL_VAL_TYPE lambda = 2; 
-    ff.fit(*sparse_time_signal, dataset9_len_, lambda);
-    auto res = ff.get_result();
+    std::vector<DATA_REAL_VAL_TYPE> lambdas = {0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5, 2.75, 3.0, 3.25, 3.5, 3.75, 4.0  };
+    std::vector<DATA_IDX_TYPE> sizes = { 7, 10, 12, 15, 20, 25, 30, 50, 100  };
+    DATA_LEN_TYPE subsample_count = DATA_LEN_TYPE(10);
+    DATA_REAL_VAL_TYPE recoveredSparsity[lambdas.size()][sizes.size()];
+    DATA_REAL_VAL_TYPE reconstructError[lambdas.size()][sizes.size()];
+    DATA_REAL_VAL_TYPE overallReconstructError[lambdas.size()][sizes.size()];
+    DATA_REAL_VAL_TYPE sumAbsYRe[lambdas.size()][sizes.size()];
+    DATA_REAL_VAL_TYPE sumAbsYIm[lambdas.size()][sizes.size()];
+    DATA_REAL_VAL_TYPE l1Norm[lambdas.size()][sizes.size()];
+
+    for (int l = 0; l < lambdas.size(); ++l) {
+       for (int s = 0; s < sizes.size(); ++s) {
+          DATA_REAL_VAL_TYPE AvgRecoveredSpectralSparsity = DATA_REAL_VAL_TYPE(0);
+          DATA_REAL_VAL_TYPE AvgReconstructPercentError = DATA_REAL_VAL_TYPE(0); 
+          DATA_REAL_VAL_TYPE AvgOverallReconstructPercentError = DATA_REAL_VAL_TYPE(0);
+          DATA_REAL_VAL_TYPE AvgSumAbsYRe = DATA_REAL_VAL_TYPE(0);
+          DATA_REAL_VAL_TYPE AvgSumAbsYIm = DATA_REAL_VAL_TYPE(0);
+          DATA_REAL_VAL_TYPE AvgL1Norm = DATA_REAL_VAL_TYPE(0);
+          for (int iter = 0; iter < subsample_count; ++iter)   {
+            SparseDataContainer<DATA_REAL_VAL_TYPE> sparse_time_signal;
+            prepare_dataset_9(sizes[s],sparse_time_signal);
+            std::unique_ptr<FourierForecasterLinear> ff = std::unique_ptr<FourierForecasterLinear>(new FourierForecasterLinear("superresolutionTest1",FourierForecaster::SCIP));
+            ff->fit(sparse_time_signal, dataset9_len_, lambdas[l]);
+            auto& res1 = ff->get_result();
+            auto& res2 = *result9_;
+            DATA_REAL_VAL_TYPE err_abs=DATA_REAL_VAL_TYPE(0), sumRe=DATA_REAL_VAL_TYPE(0);
+            std::unordered_set<int> ind;
+            for (int i = 0; i < sparse_time_signal.size(); ++i)
+            {
+               ind.insert(sparse_time_signal[i].first);
+            }
+            std::vector<double> filtered;
+            for (int i = 0 ; i < dataset9_len_; ++i) {
+                if (ind.find(i) == ind.end()) {
+                   filtered.push_back(res2[i]);
+                }
+            }
+            int leftoverCount = dataset9_len_ - sparse_time_signal.size();
+            for (int i = 0; i < leftoverCount; ++i) {
+              err_abs += std::abs(filtered[i]-res1[i+10]);
+              sumRe += std::abs(filtered[i]);
+            }
+            for (int i = 0; i < sparse_time_signal.size(); ++i) {
+               err_abs += std::abs(res1[i] - sparse_time_signal[i].second);
+               sumRe += std::abs(sparse_time_signal[i].second);
+            }
+            DATA_REAL_VAL_TYPE overallPercentError = err_abs/sumRe*100.0;
+            LOG(INFO) << "Time domain error against true signal: " << overallPercentError;
+
+            AvgOverallReconstructPercentError += overallPercentError;
+            AvgReconstructPercentError += ff->percentErr_;
+            AvgRecoveredSpectralSparsity += ff->recoveredSparsity_;
+            AvgSumAbsYRe += ff->freqNorm_.first;
+            AvgSumAbsYIm += ff->freqNorm_.second;
+            AvgL1Norm += ff->l1_norm_;
+          }
+          recoveredSparsity[l][s] = AvgRecoveredSpectralSparsity / ((DATA_REAL_VAL_TYPE) subsample_count);
+          reconstructError[l][s] = AvgReconstructPercentError / ((DATA_REAL_VAL_TYPE) subsample_count);
+          overallReconstructError[l][s] = AvgOverallReconstructPercentError / ((DATA_REAL_VAL_TYPE) subsample_count);
+          sumAbsYRe[l][s] = AvgSumAbsYRe / ((DATA_REAL_VAL_TYPE) subsample_count);
+          sumAbsYIm[l][s] = AvgSumAbsYIm / ((DATA_REAL_VAL_TYPE) subsample_count);
+          l1Norm[l][s] = AvgL1Norm /  ((DATA_REAL_VAL_TYPE) subsample_count);
+        
+       }
+    }
+
+
+   std::cout << "Lambda, |Omega|, RecoveredSpectralSparsity, ReconstructedPercentError, OverallReconstructedPercentError, sum |y_{re}|, sum |y_{im}|, l1 norm" << std::endl;
+   for (int l = 0; l < lambdas.size(); ++l) {
+      for (int s = 0; s < sizes.size(); ++s) {
+         std::cout << lambdas[l] << ", " << sizes[s] << ", " 
+                   << recoveredSparsity[l][s] << ", " << reconstructError[l][s] << ", " 
+                   << overallReconstructError[l][s] << ", " << sumAbsYRe[l][s] << ", " 
+                   << sumAbsYIm[l][s] << ", " << l1Norm[l][s] << std::endl;
+      }
+
+   }     
     
 
     EXPECT_TRUE(true);

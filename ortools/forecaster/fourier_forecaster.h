@@ -109,13 +109,14 @@ class FourierForecaster : public Forecaster {
         return (ForecasterStatus) status_;
      }
 
-     DenseDataContainer<DATA_REAL_VAL_TYPE>* get_result()
+     DenseDataContainer<DATA_REAL_VAL_TYPE>& get_result()
      {
-        return result_.get();
+        return *result_;
      }
 
      bool init( );
- 
+     DATA_REAL_VAL_TYPE percentErr_;
+     DATA_LEN_TYPE recoveredSparsity_; 
   protected:
      // the name of the forecaster
      //
@@ -140,6 +141,7 @@ typedef std::pair<DATA_REAL_VAL_TYPE,DATA_REAL_VAL_TYPE> FrequencyNorm;
 class FourierForecasterLinear : public FourierForecaster {
    public:
      FourierForecasterLinear(const std::string& name, enum OptimizationSuite opt_suite);
+     
      ForecasterType GetType() override;
      
      // define Prophet-like interface for the classes implementing Forecaster
@@ -168,9 +170,12 @@ class FourierForecasterLinear : public FourierForecaster {
      //
      //END: define Prophet-like interface for the classes implementing Forecaster
      ~FourierForecasterLinear();
+
+     FrequencyNorm freqNorm_;
+     DATA_REAL_VAL_TYPE l1_norm_;
    protected:
      void calculate_l1_norm(const std::vector<MPVariable*>& varX, const std::vector<MPVariable*>& varY,
-         const DATA_REAL_VAL_TYPE& lambda, FrequencyNorm& l1_norm); 
+         const DATA_REAL_VAL_TYPE& lambda, FrequencyNorm& freq_norm, DATA_REAL_VAL_TYPE& l1_norm); 
 #ifndef NDEBUG
      void print_frequencies(const std::vector<MPVariable*>& varX, const std::vector<MPVariable*>& varY);
 #endif
