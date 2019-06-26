@@ -72,14 +72,12 @@ TOUCH = touch
 WHICH = which
 GREP = grep
 AWK = awk
-DPKG = dpkg
-DPKGLIST = dpkg -l
-APTGET = apt-get
-APTLIST = apt list
-APTLISTINSTALLED = apt list --installed
+LINUX_LIST_INSTALLED = apt list --installed
 STDERR_OFF = 2> /dev/null
 STDOUT_AND_STDERR_OFF = 2>&1 > /dev/null
-INSTALL = sudo apt-get install
+LINUX_INSTALL = sudo apt-get install
+DARWIN_INSTALL = brew install
+DARWIN_LIST_INSTALLED = brew list
 
 CMAKE := $(shell $(WHICH) cmake)
 ifeq ($(CMAKE),)

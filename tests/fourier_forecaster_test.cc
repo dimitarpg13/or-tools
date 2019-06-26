@@ -520,8 +520,8 @@ class FourierForecasterTest : public ::testing::Test {
 
   DATA_LEN_TYPE dataset11_sample_period_ = 10;
 
-  std::unordered_map<FourierForecaster::OptimizationSuite,DATA_REAL_VAL_TYPE> round_off_error_small_dataset_;
-  std::unordered_map<FourierForecaster::OptimizationSuite,DATA_REAL_VAL_TYPE> round_off_error_large_dataset_;
+  std::unordered_map<int,DATA_REAL_VAL_TYPE> round_off_error_small_dataset_;
+  std::unordered_map<int,DATA_REAL_VAL_TYPE> round_off_error_large_dataset_;
 
   std::unique_ptr<DenseDataContainer<DATA_REAL_VAL_TYPE>> result9_;
  // Inverse1DTransform ifftTr11_; 

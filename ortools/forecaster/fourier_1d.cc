@@ -3,6 +3,95 @@
 namespace operations_research {
 namespace forecaster {
 
+template<typename T>
+DenseDataContainer<T>::DenseDataContainer(const DATA_LEN_TYPE N) : N_(N), l1_is_old_(false), l1_norm_(0) {
+   if (N > 0) {
+     data_ = (T *) calloc(N, sizeof(T));
+     for (int i = 0; i < N; ++i) {
+        data_[i] = 0;
+     }
+   }
+   else
+     data_ = nullptr;
+   NaN_ =  std::numeric_limits<T>::quiet_NaN();
+}
+
+template<typename T>
+DenseDataContainer<T>::~DenseDataContainer() {
+  if (data_ != nullptr)
+  {
+     free(data_);
+     data_ = nullptr;
+     N_ = 0;
+  } 
+}
+
+template<typename T>
+const T& DenseDataContainer<T>::operator[](const DATA_IDX_TYPE& idx) const {
+   if (idx < N_) {
+       return data_[idx];
+   }
+   else
+   {
+       //TODO (dimitarpg): maybe we should throw instead of returning
+       return NaN_;
+   } 
+}
+
+template<typename T>
+const T* const* DenseDataContainer<T>::data() {
+   return &data_;
+}
+
+template<typename T>
+const DATA_LEN_TYPE DenseDataContainer<T>::size() const {
+   return N_;
+}   
+
+template<typename T>
+T& DenseDataContainer<T>::operator[](const DATA_IDX_TYPE& idx) {
+   l1_is_old_ = true;
+   return data_[idx];
+}
+
+template<typename T>
+const T& DenseDataContainer<T>::l1_norm() 
+{
+   if (l1_is_old_) 
+   {
+      l1_norm_ = T(0);
+      for (int i = 0; i < N_; ++i) {
+        l1_norm_ += std::fabs(data_[i]);
+      }
+      l1_is_old_=false;
+   }
+   return l1_norm_; 
+}; 
+
+template<typename T>
+void DenseDataContainer<T>::error(const DenseDataContainer<T>& other, DatasetError& err) {
+  DATA_LEN_TYPE size = std::min(N_, other.size());
+  DATA_REAL_VAL_TYPE errAbs(0), errPerc(0), sumOfAbs(0);
+  for (DATA_LEN_TYPE i = 0; i < size; ++i) {
+      errAbs += fabs(data_[i] - other[i]);
+      sumOfAbs += fabs(other[i]);
+  }
+}
+
+template<typename T>
+void DenseDataContainer<T>::error(const SparseDataContainer<T>& other, const std::vector<DATA_IDX_TYPE>& index, 
+   DatasetError& err) {
+   DATA_LEN_TYPE S = other.size();
+   DATA_REAL_VAL_TYPE errAbs(0), errPerc(0), sumOfAbsOther(0);
+   for (DATA_LEN_TYPE i = 0; i < S; ++i) {
+      //TO DO (dimitarpg): it has to be sqrt of the squares
+      errAbs += fabs(data_[index[i]] - other[i].second);
+      sumOfAbsOther += fabs(other[i].second); 
+   }
+   err.first = errAbs;
+   err.second = errAbs/sumOfAbsOther*100.0;
+}
+
 DenseDataContainer<DATA_COMPL_VAL_TYPE>::DenseDataContainer(const DATA_LEN_TYPE N) : 
 	N_(N), l1_is_old_(false) {
    if (N > 0) {
@@ -100,94 +189,6 @@ DenseDataContainer<DATA_COMPL_VAL_TYPE>::~DenseDataContainer() {
   } 
 }
 
-template<typename T>
-DenseDataContainer<T>::DenseDataContainer(const DATA_LEN_TYPE N) : N_(N), l1_is_old_(false), l1_norm_(0) {
-   if (N > 0) {
-     data_ = (T *) calloc(N, sizeof(T));
-     for (int i = 0; i < N; ++i) {
-        data_[i] = 0;
-     }
-   }
-   else
-     data_ = nullptr;
-   NaN_ =  std::numeric_limits<T>::quiet_NaN();
-}
-
-template<typename T>
-DenseDataContainer<T>::~DenseDataContainer() {
-  if (data_ != nullptr)
-  {
-     free(data_);
-     data_ = nullptr;
-     N_ = 0;
-  } 
-}
-
-template<typename T>
-const T& DenseDataContainer<T>::operator[](const DATA_IDX_TYPE& idx) const {
-   if (idx < N_) {
-       return data_[idx];
-   }
-   else
-   {
-       //TODO (dimitarpg): maybe we should throw instead of returning
-       return NaN_;
-   } 
-}
-
-template<typename T>
-const T* const* DenseDataContainer<T>::data() {
-   return &data_;
-}
-
-template<typename T>
-const DATA_LEN_TYPE DenseDataContainer<T>::size() const {
-   return N_;
-}   
-
-template<typename T>
-T& DenseDataContainer<T>::operator[](const DATA_IDX_TYPE& idx) {
-   l1_is_old_ = true;
-   return data_[idx];
-}
-
-template<typename T>
-const T& DenseDataContainer<T>::l1_norm() 
-{
-   if (l1_is_old_) 
-   {
-      l1_norm_ = T(0);
-      for (int i = 0; i < N_; ++i) {
-        l1_norm_ += std::fabs(data_[i]);
-      }
-      l1_is_old_=false;
-   }
-   return l1_norm_; 
-}; 
-
-template<typename T>
-void DenseDataContainer<T>::error(const DenseDataContainer<T>& other, DatasetError& err) {
-  DATA_LEN_TYPE size = std::min(N_, other.size());
-  DATA_REAL_VAL_TYPE errAbs(0), errPerc(0), sumOfAbs(0);
-  for (DATA_LEN_TYPE i = 0; i < size; ++i) {
-      errAbs += fabs(data_[i] - other[i]);
-      sumOfAbs += fabs(other[i]);
-  }
-}
-
-template<typename T>
-void DenseDataContainer<T>::error(const SparseDataContainer<T>& other, const std::vector<DATA_IDX_TYPE>& index, 
-   DatasetError& err) {
-   DATA_LEN_TYPE S = other.size();
-   DATA_REAL_VAL_TYPE errAbs(0), errPerc(0), sumOfAbsOther(0);
-   for (DATA_LEN_TYPE i = 0; i < S; ++i) {
-      //TO DO (dimitarpg): it has to be sqrt of the squares
-      errAbs += fabs(data_[index[i]] - other[i].second);
-      sumOfAbsOther += fabs(other[i].second); 
-   }
-   err.first = errAbs;
-   err.second = errAbs/sumOfAbsOther*100.0;
-}
 
 FFT1DTransform::FFT1DTransform() :
    need_to_clear_(false), in_(nullptr), out_(nullptr), status_(SUCCESS) 
@@ -353,6 +354,8 @@ void Inverse1DTransform::plan() {
    else
        status_ |= MISSING_DATA;
 }
+
+template struct DenseDataContainer<DATA_REAL_VAL_TYPE>;
 
 } // ns: forecaster
 

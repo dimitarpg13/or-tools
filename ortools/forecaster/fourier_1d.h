@@ -34,7 +34,6 @@ using SparseDataContainer = typename std::vector<SparseDataElement<T>>;
 template<typename T>
 using ConstSparseDataContainer = typename std::vector<SparseDataElement<T>> const;
 
-
 // sparse data encoding (SDE) adopted here is kind of run-length encoding:
 // a list of Key-Value pairs ordered by Key in increasing order.
 // Key is of type DATA_IDX_TYPE, Value is of type DATA_REAL_VAL_TYPE
@@ -180,9 +179,6 @@ class Inverse1DTransform : public FFT1DTransform {
   protected:
       void plan() override;
 };
-
-template struct DenseDataContainer<DATA_REAL_VAL_TYPE>;
-template struct DenseDataContainer<DATA_COMPL_VAL_TYPE>;
 
 } // ns: forecaster
 } // ns: operations_research

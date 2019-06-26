@@ -78,9 +78,7 @@ class Forecaster {
     ~Forecaster();
 };
 
-
 } // ns: forecaster
-
 } // ns: operations_research
 
 #endif // OR_TOOLS_FORECASTER_FORECASTER

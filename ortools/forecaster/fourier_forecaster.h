@@ -1,5 +1,5 @@
 #ifndef OR_TOOLS_FORECASTER_FOURIER_FORECASTER_H_
-#define OR_TOOLS_FORECASTER_FOURTIER_FORECASTER_H_
+#define OR_TOOLS_FORECASTER_FOURIER_FORECASTER_H_
 #include <vector>
 #include <string>
 #include <utility>
@@ -12,7 +12,6 @@
 #include <limits>
 #include "ortools/linear_solver/linear_solver.h"
 #include "forecaster.h"
-#include "fourier_1d.h"
 
 namespace operations_research {
 namespace forecaster {
