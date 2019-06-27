@@ -257,8 +257,8 @@ bool FourierForecasterLinear::fit(const SparseDataContainer<DATA_REAL_VAL_TYPE>&
       constrS1_1[i] = mp_solver_->MakeRowConstraint(data[i].second, infinity());
       constrS1_1[i]->SetCoefficient(varS1[i], 1.0 );
       for (int j = 0; j < d; ++j) {
-         constrS1_1[i]->SetCoefficient(varX[j], cos( ( 2.0 * M_PI * i * j ) / N ) );
-         constrS1_1[i]->SetCoefficient(varY[j], -sin( ( 2.0 * M_PI * i * j ) / N ) );
+         constrS1_1[i]->SetCoefficient(varX[j], cos( ( 2.0 * M_PI * data[i].first * j ) / N ) );
+         constrS1_1[i]->SetCoefficient(varY[j], -sin( ( 2.0 * M_PI * data[i].first * j ) / N ) );
       }
    }
 
@@ -275,8 +275,8 @@ bool FourierForecasterLinear::fit(const SparseDataContainer<DATA_REAL_VAL_TYPE>&
       constrS1_2[i] = mp_solver_->MakeRowConstraint(-data[i].second, infinity());
       constrS1_2[i]->SetCoefficient(varS1[i], 1.0 );
       for (int j = 0; j < d; ++j) {
-         constrS1_2[i]->SetCoefficient(varX[j], -cos( ( 2.0 * M_PI * i * j ) / N ) );
-         constrS1_2[i]->SetCoefficient(varY[j], sin( ( 2.0 * M_PI * i * j ) / N ) );
+         constrS1_2[i]->SetCoefficient(varX[j], -cos( ( 2.0 * M_PI * data[i].first * j ) / N ) );
+         constrS1_2[i]->SetCoefficient(varY[j], sin( ( 2.0 * M_PI * data[i].first * j ) / N ) );
       }
    }
    
@@ -345,18 +345,13 @@ bool FourierForecasterLinear::fit(const SparseDataContainer<DATA_REAL_VAL_TYPE>&
    calculate_l1_norm(varX, varY, lambda, freqNorm_, l1_norm_);
    LOG(INFO) << "sumOfAbsYRe = " << freqNorm_.first << ", " << "sumOfAbsYIm = " << freqNorm_.second;
 
-   std::vector<DATA_IDX_TYPE> index(S);
-   for (int i = 0; i < S; ++i)
-   {
-      index[i]=i;
-   }
    // we assume that the reconstructed signal corresponding to the original sampled datapoints is located
    // in the first S slots of the signal obtained by applying inverse FFT to y.
    // there has to be analytical reasoning why the first S slots contain the reconstructed signal 
    // corresponding to the original sampled time signal -- dimitarpg 6-11-19 
    //std::generate(index.begin(), index.end(), []() -> int { static int i = 0; return i++; });
    DatasetError err;
-   result_->error(data,index,err);
+   result_->error(data,err);
    LOG(INFO) << "Absolute error: " << err.first << ", Percent error = " << err.second; 
    percentErr_ = err.second;
    int M = d/2;

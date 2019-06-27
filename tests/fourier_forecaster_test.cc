@@ -401,16 +401,16 @@ class FourierForecasterTest : public ::testing::Test {
   }
 
   void init_dataset_9(DenseDataContainer<DATA_COMPL_VAL_TYPE>& dataset, DATA_LEN_TYPE N) {
-     dataset[0][0]=1.0;
+     dataset[0][0]=5.0;
      dataset[0][1]=0.0;
-     dataset[N/2][0]=0.0;
-     dataset[N/2][1]=0.0;
+     //dataset[N/2][0]=0.0;
+     //dataset[N/2][1]=0.0;
 
-     dataset[N/100][0] = 10;
      dataset[N/100][1] = 10;
+     dataset[N/100][0] = 0;
 
      dataset[7*N/100][0] = 5;
-     dataset[7*N/100][1] = 1;
+     dataset[7*N/100][1] = 0;
 
      dataset[15*N/100][0] = 3;
      dataset[15*N/100][1] = -2;
@@ -422,10 +422,10 @@ class FourierForecasterTest : public ::testing::Test {
      dataset[31*N/100][1] = -0.5;
 
      dataset[N-N/100][0] = 10;
-     dataset[N-N/100][1] = -10;
+     dataset[N-N/100][1] = 0;
 
      dataset[N-7*N/100][0] = 5;
-     dataset[N-7*N/100][1] = -1;
+     dataset[N-7*N/100][1] = 0;
 
      dataset[N-15*N/100][0] = 3;
      dataset[N-15*N/100][1] = 2;
@@ -689,28 +689,12 @@ TEST_F(FourierForecasterTest, superresolutionTest3) {
             prepare_dataset_9(sizes[s],sparse_time_signal);
             std::unique_ptr<FourierForecasterLinear> ff = std::unique_ptr<FourierForecasterLinear>(new FourierForecasterLinear("superresolutionTest1",FourierForecaster::SCIP));
             ff->fit(sparse_time_signal, dataset9_len_, lambdas[l]);
-            auto& res1 = ff->get_result();
-            auto& res2 = *result9_;
+            auto& res = ff->get_result();
+            auto& data = *result9_;
             DATA_REAL_VAL_TYPE err_abs=DATA_REAL_VAL_TYPE(0), sumRe=DATA_REAL_VAL_TYPE(0);
-            std::unordered_set<int> ind;
-            for (int i = 0; i < sparse_time_signal.size(); ++i)
-            {
-               ind.insert(sparse_time_signal[i].first);
-            }
-            std::vector<double> filtered;
-            for (int i = 0 ; i < dataset9_len_; ++i) {
-                if (ind.find(i) == ind.end()) {
-                   filtered.push_back(res2[i]);
-                }
-            }
-            int leftoverCount = dataset9_len_ - sparse_time_signal.size();
-            for (int i = 0; i < leftoverCount; ++i) {
-              err_abs += std::abs(filtered[i]-res1[i+10]);
-              sumRe += std::abs(filtered[i]);
-            }
-            for (int i = 0; i < sparse_time_signal.size(); ++i) {
-               err_abs += std::abs(res1[i] - sparse_time_signal[i].second);
-               sumRe += std::abs(sparse_time_signal[i].second);
+            for (int i = 0; i < data.size(); ++i) {
+               err_abs += std::abs(res[i] - data[i]);
+               sumRe += std::abs(data[i]);
             }
             DATA_REAL_VAL_TYPE overallPercentError = err_abs/sumRe*100.0;
             LOG(INFO) << "Time domain error against true signal: " << overallPercentError;

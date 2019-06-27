@@ -79,13 +79,12 @@ void DenseDataContainer<T>::error(const DenseDataContainer<T>& other, DatasetErr
 }
 
 template<typename T>
-void DenseDataContainer<T>::error(const SparseDataContainer<T>& other, const std::vector<DATA_IDX_TYPE>& index, 
-   DatasetError& err) {
+void DenseDataContainer<T>::error(const SparseDataContainer<T>& other, DatasetError& err) {
    DATA_LEN_TYPE S = other.size();
    DATA_REAL_VAL_TYPE errAbs(0), errPerc(0), sumOfAbsOther(0);
    for (DATA_LEN_TYPE i = 0; i < S; ++i) {
       //TO DO (dimitarpg): it has to be sqrt of the squares
-      errAbs += fabs(data_[index[i]] - other[i].second);
+      errAbs += fabs(data_[other[i].first] - other[i].second);
       sumOfAbsOther += fabs(other[i].second); 
    }
    err.first = errAbs;
@@ -156,14 +155,13 @@ void DenseDataContainer<DATA_COMPL_VAL_TYPE>::error(const DenseDataContainer<DAT
 
 }
 
-void DenseDataContainer<DATA_COMPL_VAL_TYPE>::error(const SparseDataContainer<DATA_COMPL_VAL_TYPE>& other, 
-   const std::vector<DATA_IDX_TYPE>& index, DatasetError& err) {
+void DenseDataContainer<DATA_COMPL_VAL_TYPE>::error(const SparseDataContainer<DATA_COMPL_VAL_TYPE>& other, DatasetError& err) {
    DATA_LEN_TYPE S = other.size();
    DATA_REAL_VAL_TYPE errAbs(0), errPerc(0), sumOfAbsOther(0);
    for (DATA_LEN_TYPE i = 0; i < S; ++i) {
       //TO DO (dimitarpg): it has to be sqrt of the squares
-      errAbs += fabs(data_[index[i]][0] - other[i].second[0]);
-      errAbs += fabs(data_[index[i]][1] - other[i].second[1]);
+      errAbs += fabs(data_[other[i].first][0] - other[i].second[0]);
+      errAbs += fabs(data_[other[i].first][1] - other[i].second[1]);
       sumOfAbsOther += fabs(other[i].second[0]); 
       sumOfAbsOther += fabs(other[i].second[1]);
    }

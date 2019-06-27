@@ -72,7 +72,7 @@ struct DenseDataContainer {
     const T& NaN() { return NaN_; };
     const T& l1_norm(); 
     void error(const DenseDataContainer<T>& , DatasetError & );
-    void error(const SparseDataContainer<T>& , const std::vector<DATA_IDX_TYPE>& , DatasetError & );
+    void error(const SparseDataContainer<T>& , DatasetError & );
     T& operator[] (const DATA_IDX_TYPE&);
     friend class FFT1DTransform;
     friend class Forward1DTransform;
@@ -98,7 +98,7 @@ struct DenseDataContainer<DATA_COMPL_VAL_TYPE> {
     const DATA_COMPL_VAL_TYPE& NaN() { return NaN_; };
     const DATA_COMPL_VAL_TYPE& l1_norm();
     void error(const DenseDataContainer<DATA_COMPL_VAL_TYPE>& , DatasetError & );
-    void error(const SparseDataContainer<DATA_COMPL_VAL_TYPE>& , const std::vector<DATA_IDX_TYPE>& , DatasetError & );
+    void error(const SparseDataContainer<DATA_COMPL_VAL_TYPE>& , DatasetError & );
     DATA_COMPL_VAL_TYPE& operator[] (const DATA_IDX_TYPE&);
     friend class FFT1DTransform;
     friend class Forward1DTransform;
