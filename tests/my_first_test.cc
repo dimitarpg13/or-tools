@@ -35,7 +35,7 @@ class FooTest : public ::testing::Test {
 
 
 // Tests that the Foo::Bar() method does Abc.
-TEST_F(FooTest, MyCubeTest) {
+TEST_F(FooTest, calcCube) {
     EXPECT_EQ(1000, cubic(10));
 }
 

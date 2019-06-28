@@ -314,7 +314,7 @@ $(GEN_DIR)/ortools/linear_solver/pywraplp.py: \
  $(GEN_DIR)/ortools/linear_solver/linear_solver.pb.h \
  $(GEN_DIR)/ortools/linear_solver/linear_solver_pb2.py \
  $(PROTOBUF_PYTHON_DESC) \
- | $(GEN_DIR)/ortools/linear_solver
+ | $(GEN_DIR)/ortools/linear_solver 
 	$(SWIG_BINARY) $(SWIG_INC) -I$(INC_DIR) $(PYTHON_DEBUG) -c++ -python $(SWIG_PYTHON3_FLAG) -o $(GEN_PATH)$Sortools$Slinear_solver$Slinear_solver_python_wrap.cc -module pywraplp $(SRC_DIR)/ortools/linear_solver$Spython$Slinear_solver.i
 
 $(GEN_DIR)/ortools/linear_solver/linear_solver_python_wrap.cc: \
@@ -869,10 +869,10 @@ ifeq ($(UNIX_GFLAGS_DIR),$(OR_TOOLS_TOP)/dependencies/install)
 endif
 ifeq ($(UNIX_GLOG_DIR),$(OR_TOOLS_TOP)/dependencies/install)
   ifeq ($(PLATFORM),MACOSX)
-    PYTHON_SETUP_DEPS += , 'libglog.0.3.5.$L'
+    PYTHON_SETUP_DEPS += , 'libglog.0.4.0.$L'
   endif
   ifeq ($(PLATFORM),LINUX)
-    PYTHON_SETUP_DEPS += , 'libglog.$L.0.3.5'
+    PYTHON_SETUP_DEPS += , 'libglog.$L.0.4.0'
   endif
 endif
 ifeq ($(UNIX_PROTOBUF_DIR),$(OR_TOOLS_TOP)/dependencies/install)

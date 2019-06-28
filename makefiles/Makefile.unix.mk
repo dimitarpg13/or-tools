@@ -18,6 +18,7 @@ TEST_PATH = $(subst /,$S,$(TEST_DIR))
 GTEST_TESTS_DIR = $(OR_ROOT)tests
 GTEST_TESTS_PATH = $(subst /,$S,$(GTEST_TESTS_DIR))
 GTEST_PATH = $(subst /,$S,$(GTEST_INC))
+FFTW_PATH = $(subst /,$S,$(FFTW_INC))
 CC_EX_DIR  = $(OR_ROOT)examples/cpp
 CC_EX_PATH = $(subst /,$S,$(CC_EX_DIR))
 FZ_EX_DIR  = $(OR_ROOT)examples/flatzinc
@@ -69,6 +70,14 @@ SED = sed
 TAR = tar
 TOUCH = touch
 WHICH = which
+GREP = grep
+AWK = awk
+LINUX_LIST_INSTALLED = apt list --installed
+STDERR_OFF = 2> /dev/null
+STDOUT_AND_STDERR_OFF = 2>&1 > /dev/null
+LINUX_INSTALL = sudo apt-get install
+DARWIN_INSTALL = brew install
+DARWIN_LIST_INSTALLED = brew list
 
 CMAKE := $(shell $(WHICH) cmake)
 ifeq ($(CMAKE),)
@@ -98,7 +107,7 @@ ifdef UNIX_GLPK_DIR
 endif
 # This is needed to find scip include files.
 ifdef UNIX_SCIP_DIR
-  SCIP_INC = -I$(UNIX_SCIP_DIR)/src -DUSE_SCIP
+  SCIP_INC = -I$(UNIX_SCIP_DIR)/src -DUSE_SCIP -DNO_CONFIG_HEADER
   SCIP_SWIG = $(SCIP_INC)
 endif
 ifdef UNIX_GUROBI_DIR
@@ -137,7 +146,7 @@ ifeq ($(PLATFORM),LINUX)
  # $(UNIX_SCIP_DIR)/lib/libscipopt.a \
  # $(UNIX_SCIP_DIR)/lib/libsoplex.a \
  # $(UNIX_SCIP_DIR)/lib/libsoplex.$(SCIP_ARCH).a
-    SCIP_LNK = --force-link $(UNIX_SCIP_DIR)/lib/static/libscip.$(SCIP_ARCH).a $(UNIX_SCIP_DIR)/lib/static/libnlpi.cppad.$(SCIP_ARCH).a --force-link $(UNIX_SCIP_DIR)/lib/static/liblpispx2.$(SCIP_ARCH).a --force-link $(UNIX_SCIP_DIR)/lib/static/libsoplex.$(SCIP_ARCH).a --force-link $(UNIX_SCIP_DIR)/lib/static/libtpitny.$(SCIP_ARCH).a
+    SCIP_LNK = $(UNIX_SCIP_DIR)/lib/static/libscip.$(SCIP_ARCH).a $(UNIX_SCIP_DIR)/lib/static/libnlpi.cppad.$(SCIP_ARCH).a $(UNIX_SCIP_DIR)/lib/static/liblpispx2.$(SCIP_ARCH).a $(UNIX_SCIP_DIR)/lib/static/libsoplex.$(SCIP_ARCH).a $(UNIX_SCIP_DIR)/lib/static/libtpinone.$(SCIP_ARCH).a
   endif
   ifdef UNIX_GUROBI_DIR
     ifeq ($(PTRLENGTH),64)

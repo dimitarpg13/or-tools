@@ -2738,6 +2738,11 @@ LP_LIB_OBJS = \
  $(OBJ_DIR)/linear_solver/scip_interface.$O \
  $(OBJ_DIR)/linear_solver/linear_solver.pb.$O
 
+FORECAST_LIB_OBJS = \
+ $(OBJ_DIR)/forecaster/fourier_1d.$O \
+ $(OBJ_DIR)/forecaster/forecaster.$O \
+ $(OBJ_DIR)/forecaster/fourier_forecaster.$O
+
 objs/linear_solver/bop_interface.$O: \
  ortools/linear_solver/bop_interface.cc ortools/base/commandlineflags.h \
  ortools/base/file.h ortools/base/integral_types.h ortools/base/logging.h \
@@ -3924,6 +3929,23 @@ objs/constraint_solver/visitor.$O: ortools/constraint_solver/visitor.cc \
  ortools/gen/ortools/constraint_solver/search_limit.pb.h \
  ortools/util/vector_map.h | $(OBJ_DIR)/constraint_solver
 	$(CCC) $(CFLAGS) -c $(SRC_DIR)$Sortools$Sconstraint_solver$Svisitor.cc $(OBJ_OUT)$(OBJ_DIR)$Sconstraint_solver$Svisitor.$O
+
+
+objs/forecaster/forecaster.$O: ortools/forecaster/forecaster.h | $(OBJ_DIR)/forecaster
+	$(CCC) $(CFLAGS) -I$(FFTW_PATH) -c $(SRC_DIR)$Sortools$Sforecaster$Sforecaster.cc $(OBJ_OUT)$(OBJ_DIR)$Sforecaster$Sforecaster.$O
+
+objs/forecaster/fourier_1d.$O: ortools/forecaster/fourier_1d.cc \
+ortools/forecaster/fourier_1d.h | $(OBJ_DIR)/forecaster
+	$(CCC) $(CFLAGS) -I$(FFTW_PATH) -c $(SRC_DIR)$Sortools$Sforecaster$Sfourier_1d.cc $(OBJ_OUT)$(OBJ_DIR)$Sforecaster$Sfourier_1d.$O
+
+objs/forecaster/fourier_forecaster.$O: \
+ ortools/forecaster/fourier_forecaster.h \
+ ortools/forecaster/fourier_1d.h \
+ ortools/forecaster/forecaster.h \
+ ortools/forecaster/fourier_1d.cc \
+ ortools/forecaster/fourier_forecaster.cc \
+ ortools/forecaster/forecaster.cc | $(OBJ_DIR)/forecaster
+	$(CCC) $(CFLAGS) -I$(FFTW_PATH) -c $(SRC_DIR)$Sortools$Sforecaster$Sfourier_forecaster.cc $(OBJ_OUT)$(OBJ_DIR)$Sforecaster$Sfourier_forecaster.$O
 
 ortools/constraint_solver/assignment.proto: ;
 
