@@ -229,13 +229,13 @@ void FFT1DTransform::populate_from_sparse(ConstSparseDataContainer<DATA_REAL_VAL
          }
       }
       else if (idx == i - 1) {
-	 const auto& val = (*in_)[i-1][0];
+         const auto& val = (*in_)[i-1][0];
          // fill in all repetitions for the current value it.second
-	 for (int j = 0; j < it.second; ++j) {
+         for (int j = 0; j < it.second; ++j) {
             in_->data_[i][0] = val;
-	    in_->data_[i][1] = DATA_REAL_VAL_TYPE(0); 
-	    ++i;
-	 } 
+            in_->data_[i][1] = DATA_REAL_VAL_TYPE(0); 
+            ++i;
+         } 
       } 
       else if (i > idx + 1) {
           status_ |= INCORRECT_DATA_FORMAT;
@@ -251,7 +251,7 @@ void FFT1DTransform::populate_from_sparse(ConstSparseDataContainer<DATA_REAL_VAL
       const auto& val = in_->data_[i-1][0];
       for (; i < N; ++i) {
          in_->data_[i][0] = val;
-	 in_->data_[i][1] = DATA_REAL_VAL_TYPE(0);
+         in_->data_[i][1] = DATA_REAL_VAL_TYPE(0);
       }
    }
 };
@@ -268,14 +268,14 @@ void FFT1DTransform::populate_from_sparse(ConstSparseDataContainer<DATA_COMPL_VA
          }
       }
       else if (idx == i - 1) {
-	 const auto& real = in_->data_[i-1][0];
-	 const auto& imag = in_->data_[i-1][1];
+         const auto& real = in_->data_[i-1][0];
+         const auto& imag = in_->data_[i-1][1];
          // fill in all repetitions for the current value it.second
-	 for (DATA_IDX_TYPE j = 0; j < it.second[0]; ++j) {
+         for (DATA_IDX_TYPE j = 0; j < it.second[0]; ++j) {
             in_->data_[i][0] = real;
-	    in_->data_[i][1] = imag; 
-	    ++i;
-	 } 
+            in_->data_[i][1] = imag; 
+            ++i;
+         } 
       }
       else if (i > idx + 1) {
           status_ |= INCORRECT_DATA_FORMAT;
@@ -292,7 +292,7 @@ void FFT1DTransform::populate_from_sparse(ConstSparseDataContainer<DATA_COMPL_VA
       const auto& imag = in_->data_[i-1][1];
       for (; i < N; ++i) {
          in_->data_[i][0] = real;
-	 in_->data_[i][1] = imag;
+         in_->data_[i][1] = imag;
       }
    }
 };
