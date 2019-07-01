@@ -20,14 +20,6 @@ Forecaster::ForecasterType FourierForecasterLinear::GetType() {
    return Forecaster::ForecasterType::FourierLinear; 
 }
 
-bool FourierForecaster::init( ) {
-    timer_.Restart();
-    mp_solver_ = std::unique_ptr<MPSolver>(new MPSolver(name_, prob_type_));
-    if (!(status_ &= UNKNOWN_PROBLEM_TYPE))
-       return true;
-    else
-       return false;
-}
 
 //TODO (dimitarpg):
 FourierForecaster::~FourierForecaster() {
@@ -176,6 +168,15 @@ FourierForecasterLinear::FourierForecasterLinear(const std::string& name, enum O
 
 FourierForecasterLinear::~FourierForecasterLinear() {
 
+}
+
+bool FourierForecasterLinear::init( ) {
+    timer_.Restart();
+    mp_solver_ = std::unique_ptr<MPSolver>(new MPSolver(name_, prob_type_));
+    if (!(status_ &= UNKNOWN_PROBLEM_TYPE))
+       return true;
+    else
+       return false;
 }
 
 // Prophet-like interface for all classes implementing Forecaster
@@ -345,11 +346,6 @@ bool FourierForecasterLinear::fit(const SparseDataContainer<DATA_REAL_VAL_TYPE>&
    calculate_l1_norm(varX, varY, lambda, freqNorm_, l1_norm_);
    LOG(INFO) << "sumOfAbsYRe = " << freqNorm_.first << ", " << "sumOfAbsYIm = " << freqNorm_.second;
 
-   // we assume that the reconstructed signal corresponding to the original sampled datapoints is located
-   // in the first S slots of the signal obtained by applying inverse FFT to y.
-   // there has to be analytical reasoning why the first S slots contain the reconstructed signal 
-   // corresponding to the original sampled time signal -- dimitarpg 6-11-19 
-   //std::generate(index.begin(), index.end(), []() -> int { static int i = 0; return i++; });
    DatasetError err;
    result_->error(data,err);
    LOG(INFO) << "Absolute error: " << err.first << ", Percent error = " << err.second; 

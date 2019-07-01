@@ -31,13 +31,39 @@ DECLARE_bool(scip_feasibility_emphasis);
 namespace operations_research {
 namespace forecaster {
 
-class ScipForecaster : public Forecaster {
+class SCIPForecaster : public Forecaster {
 
+   //TO DO (dimitarpg13): most likely such synchronization will not be necessary 
+   // for the SCIP-based forecaster so remove it.
+   enum SynchronizationStatus {
+    // The underlying solver (CLP, GLPK, ...) and MPSolver are not in
+    // sync for the model nor for the solution.
+    MUST_RELOAD,
+    // The underlying solver and MPSolver are in sync for the model
+    // but not for the solution: the model has changed since the
+    // solution was computed last.
+    MODEL_SYNCHRONIZED,
+    // The underlying solver and MPSolver are in sync for the model and
+    // the solution.
+    SOLUTION_SYNCHRONIZED
+  };
 protected:
+  // Change synchronization status from SOLUTION_SYNCHRONIZED to
+  // MODEL_SYNCHRONIZED. To be used for model changes.
+  void InvalidateSolutionSynchronization();
   void Reset();
+  void SetOptimizationDirection(bool maximize); 
   void CreateSCIP();
   void DeleteSCIP();
-  
+  void SetVariableBounds(int var_index, double lb, double ub);
+
+  //TO DO (dimitarpg13): do we really need this state variable?
+  bool variable_is_extracted(int var_index) const {
+    return variable_is_extracted_[var_index];
+  }
+  // Indicates whether the model and the solution are synchronized.
+  SynchronizationStatus sync_status_;
+
    // The name of the linear programming problem.
   const std::string name_;
  // Optimization direction.
@@ -58,7 +84,10 @@ protected:
   SCIP_VAR* objective_offset_variable_;
   std::vector<SCIP_VAR*> scip_variables_;
   std::vector<SCIP_CONS*> scip_constraints_;
-    
+
+   // Whether variables have been extracted to the underlying interface.
+  std::vector<bool> variable_is_extracted_;
+
 
 };
 

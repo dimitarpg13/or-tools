@@ -113,7 +113,6 @@ class FourierForecaster : public Forecaster {
         return *result_;
      }
 
-     bool init( );
      DATA_REAL_VAL_TYPE percentErr_;
      DATA_LEN_TYPE recoveredSparsity_; 
   protected:
@@ -125,7 +124,7 @@ class FourierForecaster : public Forecaster {
      //
      enum OptimizationSuite opt_suite_;
 
-     std::unique_ptr<MPSolver> mp_solver_;
+   
       // Time limit in milliseconds (0 = no limit).
       //
      int64 time_limit_;
@@ -143,6 +142,7 @@ class FourierForecasterLinear : public FourierForecaster {
      
      ForecasterType GetType() override;
      
+
      // define Prophet-like interface for the classes implementing Forecaster
      //
      //TODO (dimitarpg): finish the method signatures or remove unnecessary methods
@@ -173,11 +173,14 @@ class FourierForecasterLinear : public FourierForecaster {
      FrequencyNorm freqNorm_;
      DATA_REAL_VAL_TYPE l1_norm_;
    protected:
+      bool init( );
+
      void calculate_l1_norm(const std::vector<MPVariable*>& varX, const std::vector<MPVariable*>& varY,
          const DATA_REAL_VAL_TYPE& lambda, FrequencyNorm& freq_norm, DATA_REAL_VAL_TYPE& l1_norm); 
 #ifndef NDEBUG
      void print_frequencies(const std::vector<MPVariable*>& varX, const std::vector<MPVariable*>& varY);
 #endif
+     std::unique_ptr<MPSolver> mp_solver_;
 };
 
 } // ns: forecaster
