@@ -27,18 +27,10 @@
 #include "ortools/base/port.h"
 #include "ortools/base/stringprintf.h"
 #include "ortools/base/timer.h"
+#include "ortools/base/scip/scip_base.h"
 #include "ortools/linear_solver/linear_solver.h"
 #include "scip/scip.h"
 #include "scip/scipdefplugins.h"
-
-// Our own version of SCIP_CALL to do error management.
-// TODO(user): The error management could be improved, especially
-// for the Solve method. We should return an error status (did the
-// solver encounter problems?) and let the user query the result
-// status (optimal, infeasible, ...) with a separate method. This is a
-// common API for solvers. The API change in all existing code might
-// not be worth it.
-#define ORTOOLS_SCIP_CALL(x) CHECK_EQ(SCIP_OKAY, x)
 
 DEFINE_bool(scip_feasibility_emphasis, false,
             "When true, emphasize search towards feasibility. This may or "
