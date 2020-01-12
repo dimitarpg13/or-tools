@@ -58,26 +58,26 @@ message(STATUS "USE_CPLEX: ${USE_CPLEX}")
 include(CMakeDependentOption)
 CMAKE_DEPENDENT_OPTION(BUILD_DEPS "Force re-build of all dependencies" OFF
   "NOT BUILD_PYTHON; NOT BUILD_JAVA; NOT BUILD_DOTNET" ON)
-CMAKE_DEPENDENT_OPTION(BUILD_ZLIB "Build the ZLIB dependency Library" OFF
-  "NOT BUILD_DEPS" ON)
-CMAKE_DEPENDENT_OPTION(BUILD_absl "Build the abseil-cpp dependency Library" OFF
-  "NOT BUILD_DEPS" ON)
-CMAKE_DEPENDENT_OPTION(BUILD_gflags "Build the gflags dependency Library" OFF
-  "NOT BUILD_DEPS" ON)
-CMAKE_DEPENDENT_OPTION(BUILD_glog "Build the glog dependency Library" OFF
-  "NOT BUILD_DEPS" ON)
-CMAKE_DEPENDENT_OPTION(BUILD_Protobuf "Build the Protobuf dependency Library" OFF
-  "NOT BUILD_DEPS" ON)
-CMAKE_DEPENDENT_OPTION(BUILD_CoinUtils "Build the CoinUtils dependency Library" OFF
-  "NOT BUILD_DEPS" ON)
-CMAKE_DEPENDENT_OPTION(BUILD_Osi "Build the Osi dependency Library" OFF
-  "NOT BUILD_DEPS" ON)
-CMAKE_DEPENDENT_OPTION(BUILD_Clp "Build the Clp dependency Library" OFF
-  "NOT BUILD_DEPS" ON)
-CMAKE_DEPENDENT_OPTION(BUILD_Cgl "Build the Cgl dependency Library" OFF
-  "NOT BUILD_DEPS" ON)
-CMAKE_DEPENDENT_OPTION(BUILD_Cbc "Build the Cbc dependency Library" OFF
-  "NOT BUILD_DEPS" ON)
+CMAKE_DEPENDENT_OPTION(BUILD_ZLIB "Build the ZLIB dependency Library" ON
+  "NOT BUILD_DEPS" OFF)
+CMAKE_DEPENDENT_OPTION(BUILD_absl "Build the abseil-cpp dependency Library" ON
+  "NOT BUILD_DEPS" OFF)
+CMAKE_DEPENDENT_OPTION(BUILD_gflags "Build the gflags dependency Library" ON
+  "NOT BUILD_DEPS" OFF)
+CMAKE_DEPENDENT_OPTION(BUILD_glog "Build the glog dependency Library" ON
+  "NOT BUILD_DEPS" OFF)
+CMAKE_DEPENDENT_OPTION(BUILD_Protobuf "Build the Protobuf dependency Library" ON
+  "NOT BUILD_DEPS" OFF)
+CMAKE_DEPENDENT_OPTION(BUILD_CoinUtils "Build the CoinUtils dependency Library" ON
+  "NOT BUILD_DEPS" OFF)
+CMAKE_DEPENDENT_OPTION(BUILD_Osi "Build the Osi dependency Library" ON
+  "NOT BUILD_DEPS" OFF)
+CMAKE_DEPENDENT_OPTION(BUILD_Clp "Build the Clp dependency Library" ON
+  "NOT BUILD_DEPS" OFF)
+CMAKE_DEPENDENT_OPTION(BUILD_Cgl "Build the Cgl dependency Library" ON
+  "NOT BUILD_DEPS" OFF)
+CMAKE_DEPENDENT_OPTION(BUILD_Cbc "Build the Cbc dependency Library" ON
+  "NOT BUILD_DEPS" OFF)
 
 message(STATUS "Build all dependencies: ${BUILD_DEPS}")
 message(STATUS "Build ZLIB: ${BUILD_ZLIB}")
